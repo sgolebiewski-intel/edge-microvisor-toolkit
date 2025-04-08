@@ -1,0 +1,48 @@
+From cd802a4382698f848d48b6544d3e809db273a7f8 Mon Sep 17 00:00:00 2001
+From: Tan Jia Yong <jia.yong.tan@intel.com>
+Date: Thu, 28 Nov 2024 16:36:11 +0800
+Subject: [PATCH] Fix cryptsetup selinux permission denied
+
+-Allow lvm to search bfp directory
+-Allow lvm to search init key
+-Allow lvm to open /dev/loop-control chr_file
+
+Audit denied logs:
+AVC avc: denied { open } for pid=4950 comm="cryptsetup" path="/dev/loop-control" dev="devtmpfs" ino=113 scontext=system_u:system_r:lvm_t:s0 tcontext=system_u:object_r:loop_control_device_t:s0 tclass=chr_file permissive=1
+AVC avc: denied { ioctl } for pid=4950 comm="cryptsetup" path="/dev/loop-control" dev="devtmpfs" ino=113 ioctlcmd=0x4c82 scontext=system_u:system_r:lvm_t:s0 tcontext=system_u:object_r:loop_control_device_t:s0 tclass=chr_file permissive=1
+AVC avc: denied { search } for pid=4950 comm="cryptsetup" scontext=system_u:system_r:lvm_t:s0 tcontext=system_u:system_r:init_t:s0 tclass=key permissive=1
+AVC avc: denied { search } for pid=5069 comm="cryptsetup" name="/" dev="bpf" ino=1 scontext=system_u:system_r:lvm_t:s0 tcontext=system_u:object_r:bpf_t:s0 tclass=dir permissive=1
+
+Signed-off-by: Tan Jia Yong <jia.yong.tan@intel.com>
+---
+ policy/modules/system/lvm.te | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/policy/modules/system/lvm.te b/policy/modules/system/lvm.te
+index dbd3a29ff..5ed576100 100644
+--- a/policy/modules/system/lvm.te
++++ b/policy/modules/system/lvm.te
+@@ -2,6 +2,8 @@ policy_module(lvm)
+ 
+ gen_require(`
+ 	type systemd_unit_t;
++        type bpf_t;
++        type loop_control_device_t;
+ ')
+ 
+ ########################################
+@@ -223,6 +225,11 @@ sysnet_write_config(lvm_t)
+ allow lvm_t init_runtime_t:dir read;
+ allow lvm_t systemd_unit_t:dir { getattr open read search };
+ 
++# cryptsetup
++init_search_keys(lvm_t)
++allow lvm_t bpf_t:dir search;
++allow lvm_t loop_control_device_t:chr_file { ioctl open };
++
+ userdom_use_inherited_user_terminals(lvm_t)
+ 
+ ifdef(`init_systemd',`
+-- 
+2.37.3
+

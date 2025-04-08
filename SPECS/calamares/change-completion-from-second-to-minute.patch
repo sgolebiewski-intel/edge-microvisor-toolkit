@@ -1,0 +1,37 @@
+Subject: [PATCH] change second to minute and second
+
+---
+ src/modules/finished/FinishedPage.cpp | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/src/modules/finished/FinishedPage.cpp b/src/modules/finished/FinishedPage.cpp
+index 764e227..6237d4d 100644
+--- a/src/modules/finished/FinishedPage.cpp
++++ b/src/modules/finished/FinishedPage.cpp
+@@ -30,10 +30,21 @@ FinishedPage::updateInstallationTime()
+     QString currentText;
+ 
+     gs = Calamares::JobQueue::instance()->globalStorage();
+-    installDurationString = QString::number(gs->value( "installDuration").toDouble());
++    int installDuration = gs->value("installDuration").toInt();
++    int minutes = installDuration / 60;
++    int seconds = installDuration % 60;
++
++    if (seconds == 0)
++    {
++        installDurationString = QString("%1 minutes").arg(minutes);
++    }
++    else
++    {
++        installDurationString = QString("%1 minutes and %2 seconds").arg(minutes).arg(seconds);
++    }
+ 
+     currentText = ui->mainText->text();
+-    ui->mainText->setText( tr( "%1 <br/><br><h1>Installation took %2 seconds.</h1>").arg(currentText, installDurationString) );
++    ui->mainText->setText( tr( "%1 <br/><br><h1>Installation took %2.</h1>").arg(currentText, installDurationString) );
+ }
+ 
+ FinishedPage::FinishedPage( Config* config, QWidget* parent )
+-- 
+2.34.1
+

@@ -1,0 +1,575 @@
+From 4098b94a46ad99090cb27a6b311b6fff83c177d1 Mon Sep 17 00:00:00 2001
+From: Naveen Saini <naveen.kumar.saini@intel.com>
+Date: Tue, 25 Mar 2025 12:06:59 +0800
+Subject: [PATCH] feat: Add new distro
+
+This adds support for the new distro 'Edge Microvisor Toolkit'.
+
+Edge Microvisor Toolkit is the downstream project of the Microsoft  Azure Linux distro.
+
+Signed-off-by: Naveen Saini <naveen.kumar.saini@intel.com>
+Signed-off-by: Lee Chee Yang <chee.yang.lee@intel.com>
+---
+ cloudinit/config/cc_ca_certs.py               |   2 +
+ cloudinit/config/cc_ntp.py                    |  10 ++
+ cloudinit/config/cc_resolv_conf.py            |   1 +
+ cloudinit/config/cc_yum_add_repo.py           |   1 +
+ cloudinit/distros/__init__.py                 |   1 +
+ cloudinit/distros/edgemicrovisortoolkit.py    |  70 ++++++++++
+ cloudinit/util.py                             |   1 +
+ config/cloud.cfg.tmpl                         |  15 ++-
+ pyproject.toml                                |   1 +
+ templates/hosts.edgemicrovisortoolkit.tmpl    |  22 ++++
+ .../distros/test_edgemicrovisortoolkit.py     |  25 ++++
+ tests/unittests/distros/test_netconfig.py     | 123 ++++++++++++++++++
+ tests/unittests/test_cli.py                   |   2 +-
+ tests/unittests/test_render_template.py       |   1 +
+ tests/unittests/test_util.py                  |  25 ++++
+ tools/render-template                         |   1 +
+ 16 files changed, 293 insertions(+), 8 deletions(-)
+ create mode 100644 cloudinit/distros/edgemicrovisortoolkit.py
+ create mode 100644 templates/hosts.edgemicrovisortoolkit.tmpl
+ create mode 100644 tests/unittests/distros/test_edgemicrovisortoolkit.py
+
+diff --git a/cloudinit/config/cc_ca_certs.py b/cloudinit/config/cc_ca_certs.py
+index d6dbc977f..842ad76e0 100644
+--- a/cloudinit/config/cc_ca_certs.py
++++ b/cloudinit/config/cc_ca_certs.py
+@@ -73,6 +73,7 @@ for distro in (
+ for distro in (
+     "almalinux",
+     "cloudlinux",
++    "edgemicrovisortoolkit",
+ ):
+     DISTRO_OVERRIDES[distro] = DISTRO_OVERRIDES["rhel"]
+ 
+@@ -82,6 +83,7 @@ distros = [
+     "cloudlinux",
+     "alpine",
+     "debian",
++    "edgemicrovisortoolkit",
+     "fedora",
+     "rhel",
+     "opensuse",
+diff --git a/cloudinit/config/cc_ntp.py b/cloudinit/config/cc_ntp.py
+index e2b83191a..b329e23de 100644
+--- a/cloudinit/config/cc_ntp.py
++++ b/cloudinit/config/cc_ntp.py
+@@ -31,6 +31,7 @@ distros = [
+     "cos",
+     "debian",
+     "eurolinux",
++    "edgemicrovisortoolkit",
+     "fedora",
+     "freebsd",
+     "mariner",
+@@ -230,6 +231,15 @@ DISTRO_CLIENT_CONFIG = {
+             "check_exe": "/usr/lib/systemd/systemd-timesyncd",
+         },
+     },
++    "edgemicrovisortoolkit": {
++        "chrony": {
++            "service_name": "chronyd",
++        },
++        "systemd-timesyncd": {
++            "check_exe": "/usr/lib/systemd/systemd-timesyncd",
++            "confpath": "/etc/systemd/timesyncd.conf",
++        },
++    },
+     "ubuntu": {
+         "chrony": {
+             "confpath": "/etc/chrony/chrony.conf",
+diff --git a/cloudinit/config/cc_resolv_conf.py b/cloudinit/config/cc_resolv_conf.py
+index 408bbbca8..73296e880 100644
+--- a/cloudinit/config/cc_resolv_conf.py
++++ b/cloudinit/config/cc_resolv_conf.py
+@@ -28,6 +28,7 @@ meta: MetaSchema = {
+     "distros": [
+         "alpine",
+         "azurelinux",
++        "edgemicrovisortoolkit",
+         "fedora",
+         "mariner",
+         "opensuse",
+diff --git a/cloudinit/config/cc_yum_add_repo.py b/cloudinit/config/cc_yum_add_repo.py
+index d857d89d3..99063f89b 100644
+--- a/cloudinit/config/cc_yum_add_repo.py
++++ b/cloudinit/config/cc_yum_add_repo.py
+@@ -38,6 +38,7 @@ meta: MetaSchema = {
+         "centos",
+         "cloudlinux",
+         "eurolinux",
++        "edgemicrovisortoolkit",
+         "fedora",
+         "mariner",
+         "openeuler",
+diff --git a/cloudinit/distros/__init__.py b/cloudinit/distros/__init__.py
+index e65cbfb5d..227346411 100644
+--- a/cloudinit/distros/__init__.py
++++ b/cloudinit/distros/__init__.py
+@@ -75,6 +75,7 @@ OSFAMILIES = {
+         "centos",
+         "cloudlinux",
+         "eurolinux",
++        "edgemicrovisortoolkit",
+         "fedora",
+         "mariner",
+         "miraclelinux",
+diff --git a/cloudinit/distros/edgemicrovisortoolkit.py b/cloudinit/distros/edgemicrovisortoolkit.py
+new file mode 100644
+index 000000000..39170eed6
+--- /dev/null
++++ b/cloudinit/distros/edgemicrovisortoolkit.py
+@@ -0,0 +1,70 @@
++# Copyright (C) 2024 Intel Corporation
++#
++# This file is part of cloud-init. See LICENSE file for license information.
++
++import logging
++
++from cloudinit import subp, util
++from cloudinit.distros import rhel
++from cloudinit.net.netplan import CLOUDINIT_NETPLAN_FILE
++
++LOG = logging.getLogger(__name__)
++
++NETWORK_FILE_HEADER = """\
++# This file is generated from information provided by the datasource.  Changes
++# to it will not persist across an instance reboot. To disable cloud-init's
++# network configuration capabilities, write a file
++# /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg with the following:
++# network: {config: disabled}
++"""
++
++
++class Distro(rhel.Distro):
++    def __init__(self, name, cfg, paths):
++        super().__init__(name, cfg, paths)
++        self.osfamily = "edgemicrovisortoolkit"
++
++        self.network_conf_dir = "/etc/systemd/network/"
++        self.systemd_locale_conf_fn = "/etc/locale.conf"
++        self.resolve_conf_fn = "/etc/systemd/resolved.conf"
++        self.init_cmd = ["systemctl"]
++
++        self.network_conf_fn = {"netplan": CLOUDINIT_NETPLAN_FILE}
++        self.renderer_configs = {
++            "networkd": {
++                "resolv_conf_fn": self.resolve_conf_fn,
++                "network_conf_dir": self.network_conf_dir,
++            },
++            "netplan": {
++                "netplan_path": self.network_conf_fn["netplan"],
++                "netplan_header": NETWORK_FILE_HEADER,
++                "postcmds": "True",
++            },
++        }
++
++    def package_command(self, command, args=None, pkgs=None):
++        if pkgs is None:
++            pkgs = []
++
++        if subp.which("dnf"):
++            LOG.debug("Using DNF for package management")
++            cmd = ["dnf"]
++        else:
++            LOG.debug("Using TDNF for package management")
++            cmd = ["tdnf"]
++        # Determines whether or not dnf/tdnf prompts for confirmation
++        # of critical actions. We don't want to prompt...
++        cmd.append("-y")
++
++        if args and isinstance(args, str):
++            cmd.append(args)
++        elif args and isinstance(args, list):
++            cmd.extend(args)
++
++        cmd.append(command)
++
++        pkglist = util.expand_package_list("%s-%s", pkgs)
++        cmd.extend(pkglist)
++
++        # Allow the output of this to flow outwards (ie not be captured)
++        subp.subp(cmd, capture=False)
+diff --git a/cloudinit/util.py b/cloudinit/util.py
+index 9c90e35f5..1430998ce 100644
+--- a/cloudinit/util.py
++++ b/cloudinit/util.py
+@@ -665,6 +665,7 @@ def _get_variant(info):
+             "cloudlinux",
+             "debian",
+             "eurolinux",
++            "edgemicrovisortoolkit",
+             "fedora",
+             "mariner",
+             "miraclelinux",
+diff --git a/config/cloud.cfg.tmpl b/config/cloud.cfg.tmpl
+index bc3e6067e..f4843adbe 100644
+--- a/config/cloud.cfg.tmpl
++++ b/config/cloud.cfg.tmpl
+@@ -6,7 +6,7 @@
+                              "miraclelinux", "rhel", "rocky", "virtuozzo"] %}
+ {% set gecos = ({"amazon": "EC2 Default User", "azurelinux": "Azure Linux",
+                  "centos": "Cloud User", "debian": "Debian",
+-                 "dragonfly": "DragonFly", "freebsd": "FreeBSD",
++                 "dragonfly": "DragonFly", "edgemicrovisortoolkit": "Edge Microvisor Toolkit", "freebsd": "FreeBSD",
+                  "mariner": "MarinerOS", "rhel": "Cloud User",
+                  "netbsd": "NetBSD", "openbsd": "openBSD",
+                  "openmandriva": "OpenMandriva admin", "photon": "PhotonOS",
+@@ -14,6 +14,7 @@
+ {% set groups = ({"alpine": "adm, wheel", "aosc": "wheel", "arch": "wheel, users",
+                   "azurelinux": "wheel",
+                   "debian": "adm, audio, cdrom, dialout, dip, floppy, netdev, plugdev, sudo, video",
++                  "edgemicrovisortoolkit": "wheel",
+                   "gentoo": "users, wheel", "mariner": "wheel",
+                   "photon": "wheel",
+                   "openmandriva": "wheel, users, systemd-journal",
+@@ -166,7 +167,7 @@ cloud_config_modules:
+ {% if variant == "ubuntu" %}
+   - ubuntu_pro
+ {% endif %}
+-{% elif variant in ["azurelinux", "fedora", "mariner", "openeuler",
++{% elif variant in ["azurelinux", "edgemicrovisortoolkit", "fedora", "mariner", "openeuler",
+                     "openmandriva", "photon"] or is_rhel %}
+ {% if is_rhel %}
+   - rh_subscription
+@@ -220,7 +221,7 @@ cloud_final_modules:
+ # (not accessible to handlers/transforms)
+ system_info:
+   # This will affect which distro class gets used
+-{% if variant in ["alpine", "amazon", "aosc", "arch", "azurelinux", "debian", "fedora",
++{% if variant in ["alpine", "amazon", "aosc", "arch", "azurelinux", "debian", "edgemicrovisortoolkit", "fedora",
+                   "freebsd", "gentoo", "mariner", "netbsd", "openbsd",
+                   "OpenCloudOS", "openeuler", "openmandriva", "photon", "suse",
+                   "TencentOS", "ubuntu"] or is_rhel %}
+@@ -238,7 +239,7 @@ system_info:
+ {% else %}
+     name: {{ variant }}
+ {% endif %}
+-{% if variant in ["alpine", "amazon", "aosc", "arch", "azurelinux", "debian", "fedora",
++{% if variant in ["alpine", "amazon", "aosc", "arch", "azurelinux", "debian", "edgemicrovisortoolkit", "fedora",
+                   "gentoo", "mariner", "OpenCloudOS", "openeuler",
+                   "openmandriva", "photon", "suse", "TencentOS", "ubuntu",
+                   "unknown"]
+@@ -294,7 +295,7 @@ system_info:
+ {% elif variant in ["freebsd", "netbsd", "openbsd"] %}
+   network:
+     renderers: ['{{ variant }}']
+-{% elif variant in ["azurelinux", "mariner", "photon"] %}
++{% elif variant in ["azurelinux", "edgemicrovisortoolkit", "mariner", "photon"] %}
+   network:
+     renderers: ['networkd']
+ {% elif variant == "openmandriva" %}
+@@ -320,7 +321,7 @@ system_info:
+   # Automatically discover the best ntp_client
+   ntp_client: auto
+ {% endif %}
+-{% if variant in ["alpine", "amazon", "aosc", "arch", "azurelinux", "debian", "fedora",
++{% if variant in ["alpine", "amazon", "aosc", "arch", "azurelinux", "debian", "edgemicrovisortoolkit", "fedora",
+                   "gentoo", "mariner", "OpenCloudOS", "openeuler",
+                   "openmandriva", "photon", "suse", "TencentOS", "ubuntu",
+                   "unknown"]
+@@ -368,7 +369,7 @@ system_info:
+ {% endif %}
+ {% if variant in ["debian", "ubuntu", "unknown"] %}
+   ssh_svcname: ssh
+-{% elif variant in ["alpine", "amazon", "aosc", "arch", "azurelinux", "fedora",
++{% elif variant in ["alpine", "amazon", "aosc", "arch", "azurelinux", "edgemicrovisortoolkit", "fedora",
+                     "gentoo", "mariner", "OpenCloudOS", "openeuler",
+                     "openmandriva", "photon", "suse", "TencentOS"]
+                    or is_rhel %}
+diff --git a/pyproject.toml b/pyproject.toml
+index 2adba3761..2a648416e 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -61,6 +61,7 @@ module = [
+     "cloudinit.distros",
+     "cloudinit.distros.alpine",
+     "cloudinit.distros.azurelinux",
++    "cloudinit.distros.edgemicrovisortoolkit",
+     "cloudinit.distros.bsd",
+     "cloudinit.distros.opensuse",
+     "cloudinit.distros.parsers.hostname",
+diff --git a/templates/hosts.edgemicrovisortoolkit.tmpl b/templates/hosts.edgemicrovisortoolkit.tmpl
+new file mode 100644
+index 000000000..8358bdfa7
+--- /dev/null
++++ b/templates/hosts.edgemicrovisortoolkit.tmpl
+@@ -0,0 +1,22 @@
++## template:jinja
++{#
++This file /etc/cloud/templates/hosts.edgemicrovisortoolkit.tmpl is only utilized
++if enabled in cloud-config.  Specifically, in order to enable it
++you need to add the following to config:
++  manage_etc_hosts: True
++-#}
++# Your system has configured 'manage_etc_hosts' as True.
++# As a result, if you wish for changes to this file to persist
++# then you will need to either
++# a.) make changes to the master file in /etc/cloud/templates/hosts.edgemicrovisortoolkit.tmpl
++# b.) change or remove the value of 'manage_etc_hosts' in
++#     /etc/cloud/cloud.cfg or cloud-config from user-data
++#
++# The following lines are desirable for IPv4 capable hosts
++127.0.0.1 {{fqdn}} {{hostname}}
++127.0.0.1 localhost.localdomain localhost
++127.0.0.1 localhost4.localdomain4 localhost4
++
++# The following lines are desirable for IPv6 capable hosts
++::1 {{fqdn}} {{hostname}}
++::1 localhost6.localdomain6 localhost6
+diff --git a/tests/unittests/distros/test_edgemicrovisortoolkit.py b/tests/unittests/distros/test_edgemicrovisortoolkit.py
+new file mode 100644
+index 000000000..6cebf0198
+--- /dev/null
++++ b/tests/unittests/distros/test_edgemicrovisortoolkit.py
+@@ -0,0 +1,25 @@
++# This file is part of cloud-init. See LICENSE file for license information.
++
++from tests.unittests.helpers import CiTestCase
++
++from . import _get_distro
++
++SYSTEM_INFO = {
++    "paths": {
++        "cloud_dir": "/var/lib/cloud/",
++        "templates_dir": "/etc/cloud/templates/",
++    },
++    "network": {"renderers": "networkd"},
++}
++
++
++class TestEdgeMicrovisorToolkit(CiTestCase):
++    with_logs = True
++    distro = _get_distro("edgemicrovisortoolkit", SYSTEM_INFO)
++    expected_log_line = "Rely on Edge Microvisor Toolkit default network config"
++
++    def test_network_renderer(self):
++        self.assertEqual(self.distro._cfg["network"]["renderers"], "networkd")
++
++    def test_get_distro(self):
++        self.assertEqual(self.distro.osfamily, "edgemicrovisortoolkit")
+diff --git a/tests/unittests/distros/test_netconfig.py b/tests/unittests/distros/test_netconfig.py
+index b447757be..13471c3cf 100644
+--- a/tests/unittests/distros/test_netconfig.py
++++ b/tests/unittests/distros/test_netconfig.py
+@@ -1403,6 +1403,129 @@ class TestNetCfgDistroAzureLinux(TestNetCfgDistroBase):
+             self.distro.apply_network_config, net_cfg, expected_cfgs.copy()
+         )
+ 
++class TestNetCfgDistroEdgeMicrovisorToolkit(TestNetCfgDistroBase):
++    def setUp(self):
++        super().setUp()
++        self.distro = self._get_distro("edgemicrovisortoolkit", renderers=["networkd"])
++
++    def create_conf_dict(self, contents):
++        content_dict = {}
++        for line in contents:
++            if line:
++                line = line.strip()
++                if line and re.search(r"^\[(.)\]$", line):
++                    content_dict[line] = []
++                    key = line
++                elif line:
++                    assert key
++                    content_dict[key].append(line)
++
++        return content_dict
++
++    def compare_dicts(self, actual, expected):
++        for k, v in actual.items():
++            self.assertEqual(sorted(expected[k]), sorted(v))
++
++    def _apply_and_verify(
++        self, apply_fn, config, expected_cfgs=None, bringup=False
++    ):
++        if not expected_cfgs:
++            raise ValueError("expected_cfg must not be None")
++
++        tmpd = None
++        with mock.patch("cloudinit.net.networkd.available") as m_avail:
++            m_avail.return_value = True
++            with self.reRooted(tmpd) as tmpd:
++                apply_fn(config, bringup)
++
++        results = dir2dict(tmpd)
++        for cfgpath, expected in expected_cfgs.items():
++            actual = self.create_conf_dict(results[cfgpath].splitlines())
++            self.compare_dicts(actual, expected)
++            self.assertEqual(0o644, get_mode(cfgpath, tmpd))
++
++    def nwk_file_path(self, ifname):
++        return "/etc/systemd/network/10-cloud-init-%s.network" % ifname
++
++    def net_cfg_1(self, ifname):
++        ret = (
++            """\
++        [Match]
++        Name=%s
++        [Network]
++        DHCP=no
++        [Address]
++        Address=192.168.1.5/24
++        [Route]
++        Gateway=192.168.1.254"""
++            % ifname
++        )
++        return ret
++
++    def net_cfg_2(self, ifname):
++        ret = (
++            """\
++        [Match]
++        Name=%s
++        [Network]
++        DHCP=ipv4"""
++            % ifname
++        )
++        return ret
++
++    def test_edgemicrovisortoolkit_network_config_v1(self):
++        tmp = self.net_cfg_1("eth0").splitlines()
++        expected_eth0 = self.create_conf_dict(tmp)
++
++        tmp = self.net_cfg_2("eth1").splitlines()
++        expected_eth1 = self.create_conf_dict(tmp)
++
++        expected_cfgs = {
++            self.nwk_file_path("eth0"): expected_eth0,
++            self.nwk_file_path("eth1"): expected_eth1,
++        }
++
++        self._apply_and_verify(
++            self.distro.apply_network_config, V1_NET_CFG, expected_cfgs.copy()
++        )
++
++    def test_edgemicrovisortoolkit_network_config_v2(self):
++        tmp = self.net_cfg_1("eth7").splitlines()
++        expected_eth7 = self.create_conf_dict(tmp)
++
++        tmp = self.net_cfg_2("eth9").splitlines()
++        expected_eth9 = self.create_conf_dict(tmp)
++
++        expected_cfgs = {
++            self.nwk_file_path("eth7"): expected_eth7,
++            self.nwk_file_path("eth9"): expected_eth9,
++        }
++
++        self._apply_and_verify(
++            self.distro.apply_network_config, V2_NET_CFG, expected_cfgs.copy()
++        )
++
++    def test_edgemicrovisortoolkit_network_config_v1_with_duplicates(self):
++        expected = """\
++        [Match]
++        Name=eth0
++        [Network]
++        DHCP=no
++        DNS=1.2.3.4
++        Domains=test.com
++        [Address]
++        Address=192.168.0.102/24"""
++
++        net_cfg = yaml.safe_load(V1_NET_CFG_WITH_DUPS)
++
++        expected = self.create_conf_dict(expected.splitlines())
++        expected_cfgs = {
++            self.nwk_file_path("eth0"): expected,
++        }
++
++        self._apply_and_verify(
++            self.distro.apply_network_config, net_cfg, expected_cfgs.copy()
++        )
+ 
+ def get_mode(path, target=None):
+     # Mask upper st_mode bits like S_IFREG bit preserve sticky and isuid/osgid
+diff --git a/tests/unittests/test_cli.py b/tests/unittests/test_cli.py
+index 58f003eb7..11ee1203e 100644
+--- a/tests/unittests/test_cli.py
++++ b/tests/unittests/test_cli.py
+@@ -316,7 +316,7 @@ class TestCLI:
+                     "**Supported distros:** all",
+                     "**Supported distros:** "
+                     "almalinux, alpine, aosc, azurelinux, "
+-                    "centos, cloudlinux, cos, debian, eurolinux, fedora, "
++                    "centos, cloudlinux, cos, debian, eurolinux, edgemicrovisortoolkit, fedora, "
+                     "freebsd, mariner, miraclelinux, openbsd, openeuler, "
+                     "OpenCloudOS, openmandriva, opensuse, opensuse-microos, "
+                     "opensuse-tumbleweed, opensuse-leap, photon, rhel, rocky, "
+diff --git a/tests/unittests/test_render_template.py b/tests/unittests/test_render_template.py
+index 0ed946482..aa57e8c35 100644
+--- a/tests/unittests/test_render_template.py
++++ b/tests/unittests/test_render_template.py
+@@ -14,6 +14,7 @@ DISTRO_VARIANTS = [
+     "azurelinux",
+     "centos",
+     "debian",
++    "edgemicrovisortoolkit",
+     "eurolinux",
+     "fedora",
+     "freebsd",
+diff --git a/tests/unittests/test_util.py b/tests/unittests/test_util.py
+index 190eca761..6a66a558e 100644
+--- a/tests/unittests/test_util.py
++++ b/tests/unittests/test_util.py
+@@ -422,6 +422,20 @@ OS_RELEASE_AZURELINUX = dedent(
+ """
+ )
+ 
++OS_RELEASE_EDGEMICROVISORTOOLKIT = dedent(
++    """\
++    NAME="Edge Microvisor Toolkit"
++    VERSION="3.0.20240206"
++    ID=edgemicrovisortoolkit
++    VERSION_ID="3.0"
++    PRETTY_NAME="Edge Microvisor Toolkit 3.0"
++    ANSI_COLOR="1;34"
++    HOME_URL="https://www.intel.com"
++    BUG_REPORT_URL="https://www.intel.com"
++    SUPPORT_URL="https://www.intel.com"
++"""
++)
++
+ 
+ @pytest.mark.usefixtures("fake_filesystem")
+ class TestUtil:
+@@ -1281,6 +1295,16 @@ class TestGetLinuxDistro(CiTestCase):
+         dist = util.get_linux_distro()
+         self.assertEqual(("azurelinux", "3.0", ""), dist)
+ 
++    @mock.patch("cloudinit.util.load_text_file")
++    def test_get_linux_edgemicrovisortoolkit_os_release(
++        self, m_os_release, m_path_exists
++    ):
++        """Verify we get the correct name and machine arch on Edge Microvisor Toolkit"""
++        m_os_release.return_value = OS_RELEASE_EDGEMICROVISORTOOLKIT
++        m_path_exists.side_effect = TestGetLinuxDistro.os_release_exists
++        dist = util.get_linux_distro()
++        self.assertEqual(("edgemicrovisortoolkit", "3.0", ""), dist)
++
+     @mock.patch(M_PATH + "load_text_file")
+     def test_get_linux_openmandriva(self, m_os_release, m_path_exists):
+         """Verify we get the correct name and machine arch on OpenMandriva"""
+@@ -1346,6 +1370,7 @@ class TestGetVariant:
+             ({"system": "linux", "dist": ("centos",)}, "centos"),
+             ({"system": "linux", "dist": ("cloudlinux",)}, "cloudlinux"),
+             ({"system": "linux", "dist": ("debian",)}, "debian"),
++            ({"system": "linux", "dist": ("edgemicrovisortoolkit",)}, "edgemicrovisortoolkit"),
+             ({"system": "linux", "dist": ("eurolinux",)}, "eurolinux"),
+             ({"system": "linux", "dist": ("fedora",)}, "fedora"),
+             ({"system": "linux", "dist": ("mariner",)}, "mariner"),
+diff --git a/tools/render-template b/tools/render-template
+index 78beeecb2..54e10b706 100755
+--- a/tools/render-template
++++ b/tools/render-template
+@@ -22,6 +22,7 @@ def main():
+         "cloudlinux",
+         "debian",
+         "dragonfly",
++        "edgemicrovisortoolkit",
+         "eurolinux",
+         "fedora",
+         "freebsd",
+-- 
+2.34.1
+

@@ -1,0 +1,95 @@
+module otelcol_contrib 1.0;
+
+type otelcol_contrib_t;
+type otelcol_contrib_exec_t;
+
+require {
+    type bin_t;
+    type cert_t;
+    type etc_t;
+    type fs_t;
+    type http_port_t;
+    type init_t;
+    type locale_t;
+    type net_conf_t;
+    type node_t;
+    type proc_t;
+    type setfiles_t;
+    type sysctl_net_t;
+    type sysfs_t;
+    type systemd_resolved_runtime_t;
+    type tmpfs_t;
+    type unreserved_port_t;
+    type var_run_t;
+
+    class dir { add_name getattr open read search setattr write remove_name };
+    class fifo_file { getattr read write append ioctl lock };
+    class file { entrypoint execute execute_no_trans getattr map ioctl open read relabelfrom watch setattr write };
+    class filesystem { associate getattr };
+    class lnk_file read;
+    class process { getsched sigchld signal signull sigkill };
+    class sock_file { create unlink };
+    class tcp_socket { accept bind connect create getattr getopt listen name_bind name_connect node_bind read setopt write };
+    class udp_socket { connect create getattr read setopt write };
+    class unix_stream_socket { connectto getattr read write ioctl };
+    class unix_dgram_socket sendto;
+    class fd use;
+
+    attribute daemon;
+    attribute domain;
+    attribute entry_type;
+    attribute exec_type;
+    attribute file_type;
+
+    role system_r;
+}
+
+# Define the domain and entry point for the selinux_tester service
+typeattribute otelcol_contrib_t domain, daemon;
+typeattribute otelcol_contrib_exec_t entry_type, exec_type, file_type;
+
+# Type transition rule
+type_transition init_t otelcol_contrib_exec_t:process otelcol_contrib_t;
+
+# Role assignment
+role system_r types otelcol_contrib_t;
+
+#============= otelcol_contrib_t ==============
+allow otelcol_contrib_t bin_t:dir { getattr search };
+allow otelcol_contrib_t bin_t:file { execute execute_no_trans getattr map open read setattr write };
+allow otelcol_contrib_t cert_t:dir { open read search };
+allow otelcol_contrib_t cert_t:file { getattr open read };
+allow otelcol_contrib_t cert_t:lnk_file read;
+allow otelcol_contrib_t etc_t:file { getattr open read watch };
+allow otelcol_contrib_t etc_t:lnk_file read;
+allow otelcol_contrib_t fs_t:filesystem associate;
+allow otelcol_contrib_t http_port_t:tcp_socket name_connect;
+allow otelcol_contrib_t init_t:dir search;
+allow otelcol_contrib_t init_t:file { getattr open read };
+allow otelcol_contrib_t init_t:fd use;
+allow otelcol_contrib_t init_t:fifo_file { getattr read write append ioctl lock };
+allow otelcol_contrib_t init_t:unix_stream_socket { getattr read write ioctl };
+allow otelcol_contrib_t init_t:unix_dgram_socket sendto;
+allow otelcol_contrib_t locale_t:dir search;
+allow otelcol_contrib_t locale_t:file { open read };
+allow otelcol_contrib_t net_conf_t:file { getattr open read };
+allow otelcol_contrib_t node_t:tcp_socket node_bind;
+allow otelcol_contrib_t otelcol_contrib_exec_t:file { entrypoint execute getattr map open read };
+allow otelcol_contrib_t proc_t:file { getattr open read };
+allow otelcol_contrib_t proc_t:filesystem getattr;
+allow otelcol_contrib_t self:fifo_file { read write };
+allow otelcol_contrib_t self:process { getsched signal signull };
+allow otelcol_contrib_t self:tcp_socket { accept bind connect create getattr getopt listen read setopt write };
+allow otelcol_contrib_t self:udp_socket { connect create getattr read setopt write };
+allow otelcol_contrib_t sysctl_net_t:dir search;
+allow otelcol_contrib_t sysctl_net_t:file { open read };
+allow otelcol_contrib_t sysfs_t:file { open read };
+allow otelcol_contrib_t systemd_resolved_runtime_t:dir search;
+allow otelcol_contrib_t systemd_resolved_runtime_t:file { getattr open read };
+allow otelcol_contrib_t tmpfs_t:dir search;
+allow otelcol_contrib_t unreserved_port_t:tcp_socket name_bind;
+allow otelcol_contrib_t var_run_t:dir { add_name write remove_name };
+allow otelcol_contrib_t var_run_t:sock_file { create unlink };
+
+#============= init_t ==============
+allow init_t otelcol_contrib_t:file { execute execute_no_trans map };

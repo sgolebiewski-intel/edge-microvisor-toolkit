@@ -1,0 +1,32 @@
+From 5e7739948916ac1fc599240cc4dd1e66e7193883 Mon Sep 17 00:00:00 2001
+From: Naveen Saini <naveen.kumar.saini@intel.com>
+Date: Thu, 17 Oct 2024 16:08:51 +0800
+Subject: [PATCH] bootloader: allow to create dirs
+
+audit denied log:
+
+AVC avc:  denied  { create } for  pid=1212 comm="bootctl" name="loader" scontext=system_u:system_r:bootloader_t:s0
+tcontext=system_u:object_r:dosfs_t:s0 tclass=dir permissive=0
+EdgeMicrovisorToolkit bootctl[1212]: Failed to open loader directory '/boot/efi/loader': Permission denied
+
+Signed-off-by: Naveen Saini <naveen.kumar.saini@intel.com>
+---
+ policy/modules/admin/bootloader.te | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/policy/modules/admin/bootloader.te b/policy/modules/admin/bootloader.te
+index 84b243c0c..b398055e7 100644
+--- a/policy/modules/admin/bootloader.te
++++ b/policy/modules/admin/bootloader.te
+@@ -47,6 +47,8 @@ allow bootloader_t self:process { signal_perms execmem };
+ allow bootloader_t self:fifo_file rw_fifo_file_perms;
+ 
+ allow bootloader_t bootloader_etc_t:file read_file_perms;
++allow bootloader_t dosfs_t:dir create;
++
+ # uncomment the following lines if you use "lilo -p"
+ #allow bootloader_t bootloader_etc_t:file manage_file_perms;
+ #files_etc_filetrans(bootloader_t,bootloader_etc_t,file)
+-- 
+2.43.0
+

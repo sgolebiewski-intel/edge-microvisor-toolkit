@@ -1,0 +1,42 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+name: Check Manifests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - .github/workflows/check-manifests.yml
+      - toolkit/resources/manifests/package/toolchain**
+      - toolkit/resources/manifests/package/pkggen_core**
+      - '**.spec'
+
+permissions: read-all
+
+jobs:
+  build:
+    name: Check Manifests
+    runs-on: [ ubuntu-latest ]
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    # This PR runner uses an older Ubuntu with rpm version 4.17, which doesn't understand some newer macros like %bcond
+    - name: Define missing rpm macros
+      run: |
+        if [[ -n $(rpm --eval '%bcond test 1') ]]; then
+          echo '%bcond() %[ (%{2}) ? "%{expand:%%bcond_without %{1}}" : "%{expand:%%bcond_with %{1}}" ]' > ~/.rpmmacros
+        fi
+
+    - name: Check x86_64 manifests
+      run: |
+        echo ##########
+        echo "Ensure toolchain and pkggen manifests (./toolkit/resources/manifests/package/*) match the versions in the .spec files"
+        echo "Run './scripts/toolchain/check_manifests.sh -a \"x86_64\"' to validate locally"
+        echo ##########
+        pushd toolkit
+        ./scripts/toolchain/check_manifests.sh -a "x86_64"
+        popd
+      shell: bash

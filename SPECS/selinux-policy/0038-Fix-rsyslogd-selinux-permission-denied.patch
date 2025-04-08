@@ -1,0 +1,38 @@
+From 4c11430cf6f1a2653b4fbfabb843980ed967cd12 Mon Sep 17 00:00:00 2001
+From: "Tan, Jia Yong" <jia.yong.tan@intel.com>
+Date: Fri, 18 Oct 2024 16:39:07 +0800
+Subject: [PATCH] Fix rsyslogd selinux permission denied
+
+Audit denied logs:
+avc: denied { net_admin } for pid=1270 comm="rsyslogd" capability=12
+scontext=system_u:system_r:syslogd_t:s0
+tcontext=system_u:system_r:syslogd_t:s0
+tclass=capability permissive=0
+avc:  denied  { search } for  pid=702 comm="systemd-journal" name="/"
+dev="overlay" ino=2
+scontext=system_u:system_r:syslogd_t:s0
+tcontext=system_u:object_r:tmpfs_t:s0
+tclass=dir permissive=1
+
+Signed-off-by: Tan, Jia Yong <jia.yong.tan@intel.com>
+---
+ policy/modules/system/logging.te | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/policy/modules/system/logging.te b/policy/modules/system/logging.te
+index 9d9a01fcc..ee403f29d 100644
+--- a/policy/modules/system/logging.te
++++ b/policy/modules/system/logging.te
+@@ -394,7 +394,8 @@ optional_policy(`
+ # chown fsetid for syslog-ng
+ # sys_admin for the integrated klog of syslog-ng and metalog
+ # sys_nice for rsyslog
+-allow syslogd_t self:capability { chown dac_override fsetid setgid setuid sys_admin sys_nice sys_resource sys_tty_config };
++allow syslogd_t self:capability { chown dac_override fsetid setgid setuid sys_admin sys_nice sys_resource sys_tty_config net_admin };
++allow syslogd_t tmpfs_t:dir search;
+ dontaudit syslogd_t self:capability { sys_ptrace };
+ dontaudit syslogd_t self:cap_userns { kill sys_ptrace };
+ # setpgid for metalog
+-- 
+2.34.1
+

@@ -1,0 +1,45 @@
+From 5ce8c897cfe5d205a8899cdef570be22849e2a72 Mon Sep 17 00:00:00 2001
+From: Tan Jia Yong <jia.yong.tan@intel.com>
+Date: Thu, 28 Nov 2024 15:59:32 +0800
+Subject: [PATCH] Fix init selinux permission denied
+
+Allow init_t to communicate with systemd_analyze_t for dbus-daemon process.
+
+Audit denied logs:
+EdgeMicrovisorToolkit audit[1275]: USER_AVC pid=1275 uid=18 auid=4294967295 ses=4294967295
+subj=system_u:system_r:system_dbusd_t:s0 msg='avc: denied { send_msg } for
+msgtype=method_return dest=:1.201 spid=1 tpid=3131 scontext=system_u:system_r:init_t:s0
+tcontext=system_u:system_r:systemd_analyze_t:s0 tclass=dbus permissive=1
+exe="/usr/bin/dbus-daemon" sauid=18 hostname=? addr=? terminal=?'
+
+Signed-off-by: Tan Jia Yong <jia.yong.tan@intel.com>
+---
+ policy/modules/system/init.te | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/policy/modules/system/init.te b/policy/modules/system/init.te
+index 9ec685c74..8b7405acd 100644
+--- a/policy/modules/system/init.te
++++ b/policy/modules/system/init.te
+@@ -2,6 +2,8 @@ policy_module(init)
+ 
+ gen_require(`
+ 	class passwd rootok;
++        class dbus send_msg;
++        type systemd_analyze_t;
+ ')
+ 
+ ########################################
+@@ -344,6 +346,9 @@ ifdef(`init_systemd',`
+ 	manage_lnk_files_pattern(init_t, systemd_transient_unit_t, systemd_transient_unit_t)
+ 	allow init_t systemd_transient_unit_t:dir relabel_dir_perms;
+ 
++        # for dbus-daemon process
++        allow init_t systemd_analyze_t:dbus send_msg;
++
+ 	kernel_dyntrans_to(init_t)
+ 	kernel_read_network_state(init_t)
+ 	kernel_stream_connect(init_t)
+-- 
+2.37.3
+

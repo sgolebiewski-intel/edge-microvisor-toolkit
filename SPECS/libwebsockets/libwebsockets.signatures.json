@@ -1,0 +1,6 @@
+{
+    "Signatures": {
+     "fix-openssl.patch": "39dc7913027ff8a0712b8538c698b5eed389fada3f39a46d3940d228a534af20",   
+     "libwebsockets-4.3.2.tar.gz": "6a85a1bccf25acc7e8e5383e4934c9b32a102880d1e4c37c70b27ae2a42406e1"
+    }
+   }

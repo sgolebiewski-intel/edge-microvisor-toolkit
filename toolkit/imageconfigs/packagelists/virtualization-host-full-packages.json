@@ -1,0 +1,10 @@
+{
+    "packages": [
+        "swtpm-tools",
+        "libvirt",
+        "pulseaudio",
+        "qemu-kvm",
+        "qemu-with-ui",
+        "qemu-audio-pa"
+    ]
+}

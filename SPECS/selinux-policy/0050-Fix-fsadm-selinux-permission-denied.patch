@@ -1,0 +1,53 @@
+From 5ef892a1d2ad3fc4063549ffa4cfc0f4f75710a3 Mon Sep 17 00:00:00 2001
+From: "Tan, Jia Yong" <jia.yong.tan@intel.com>
+Date: Fri, 10 Jan 2025 18:26:07 +0800
+Subject: [PATCH] Fix fsadm selinux permission denied
+
+Audit log:
+AVC avc:  denied  { getattr } for  pid=1307 comm="efibootmgr" name="/"
+dev="efivarfs" ino=2056 scontext=system_u:system_r:fsadm_t:s0
+tcontext=system_u:object_r:efivarfs_t:s0 tclass=filesystem permissive=1
+AVC avc:  denied  { read } for  pid=1307 comm="efibootmgr" name="/"
+dev="efivarfs" ino=2056 scontext=system_u:system_r:fsadm_t:s0
+tcontext=system_u:object_r:efivarfs_t:s0 tclass=dir permissive=1
+AVC avc:  denied  { read } for  pid=1307 comm="efibootmgr"
+name="Boot0000-8be4df61-93ca-11d2-aa0d-00e098032b8c" dev="efivarfs"
+ino=2086 scontext=system_u:system_r:fsadm_t:s0
+tcontext=system_u:object_r:efivarfs_t:s0 tclass=file permissive=1
+AVC avc:  denied  { open } for  pid=1307 comm="efibootmgr"
+path="/sys/firmware/efi/efivars/Boot0000-8be4df61-93ca-11d2-aa0d-00e098032b8c"
+dev="efivarfs" ino=2086 scontext=system_u:system_r:fsadm_t:s0
+tcontext=system_u:object_r:efivarfs_t:s0 tclass=file permissive=1
+
+Signed-off-by: Tan, Jia Yong <jia.yong.tan@intel.com>
+---
+ policy/modules/system/fstools.te | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/policy/modules/system/fstools.te b/policy/modules/system/fstools.te
+index 18a42890c..f7ff5e399 100644
+--- a/policy/modules/system/fstools.te
++++ b/policy/modules/system/fstools.te
+@@ -136,6 +136,7 @@ fs_remount_xattr_fs(fsadm_t)
+ # for /dev/shm
+ fs_list_auto_mountpoints(fsadm_t)
+ fs_search_tmpfs(fsadm_t)
++fs_getattr_tmpfs(fsadm_t)
+ fs_getattr_tmpfs_dirs(fsadm_t)
+ fs_read_tmpfs_symlinks(fsadm_t)
+ # for kubernetes if kubelet calls losetup
+@@ -146,6 +147,10 @@ files_manage_boot_dirs(fsadm_t)
+ files_manage_mnt_dirs(fsadm_t)
+ # for tune2fs
+ files_search_all(fsadm_t)
++# for efivarfs
++fs_getattr_efivarfs(fsadm_t)
++fs_list_efivars(fsadm_t)
++fs_read_efivarfs_files(fsadm_t)
+ 
+ mls_file_read_all_levels(fsadm_t)
+ mls_file_write_all_levels(fsadm_t)
+-- 
+2.34.1
+
+

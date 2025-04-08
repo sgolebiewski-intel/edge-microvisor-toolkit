@@ -1,0 +1,6 @@
+{
+    "packages": [
+        "dracut-hyperv",
+        "hyperv-daemons"
+    ]
+}

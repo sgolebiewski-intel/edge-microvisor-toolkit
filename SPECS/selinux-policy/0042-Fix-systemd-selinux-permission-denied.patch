@@ -1,0 +1,141 @@
+From f1935e2ea7e66e8356796b5b2d1e5de8d0982de1 Mon Sep 17 00:00:00 2001
+From: Tan Jia Yong <jia.yong.tan@intel.com>
+Date: Thu, 28 Nov 2024 16:58:07 +0800
+Subject: [PATCH] Fix systemd selinux permission denied
+
+(1)
+Allow system-machine-id-setup to retrieve attributes of the filesystem
+To access various filesystem attributes to ensure that the environment is correctly configured
+
+avc:  denied  { getattr } for  pid=797 comm="systemd-machine" name="/"
+dev="sda3" ino=2 scontext=system_u:system_r:systemd_machine_id_setup_t:s0
+tcontext=system_u:object_r:fs_t:s0 tclass=filesystem permissive=1
+
+(2)
+Allow systemd-tmpfiles to access the attribute of /var/log/cron.log
+
+avc:  denied  { getattr } for  pid=1048 comm="systemd-tmpfile"
+path="/var/log/cron.log" dev="overlay" ino=108
+scontext=system_u:system_r:systemd_tmpfiles_t:s0
+tcontext=system_u:object_r:cron_log_t:s0 tclass=file permissive=1
+
+(3)
+Fix policy for persistent partition's tmpfs dir
+
+AVC avc:  denied  { search } for  pid=1276 comm="systemd-pcrexte"
+name="systemd" dev="tmpfs" ino=68 scontext=system_u:system_r:systemd_pcrphase_t:s0
+tcontext=system_u:object_r:tmpfs_t:s0 tclass=dir permissive=0
+AVC avc: denied { write } for pid=1055 comm="systemd-pcrexte" name="tpm2-measure.log" dev="tmpfs" ino=69 scontext=system_u:system_r:systemd_pcrphase_t:s0 tcontext=system_u:object_r:tmpfs_t:s0 tclass=file permissive=1
+AVC avc: denied { open } for pid=1055 comm="systemd-pcrexte" path="/run/log/systemd/tpm2-measure.log" dev="tmpfs" ino=69 scontext=system_u:system_r:systemd_pcrphase_t:s0 tcontext=system_u:object_r:tmpfs_t:s0 tclass=file permissive=1
+AVC avc: denied { lock } for pid=1055 comm="systemd-pcrexte" path="/run/log/systemd/tpm2-measure.log" dev="tmpfs" ino=69 scontext=system_u:system_r:systemd_pcrphase_t:s0 tcontext=system_u:object_r:tmpfs_t:s0 tclass=file permissive=1
+AVC avc: denied { getattr } for pid=1055 comm="systemd-pcrexte" path="/run/log/systemd/tpm2-measure.log" dev="tmpfs" ino=69 scontext=system_u:system_r:systemd_pcrphase_t:s0 tcontext=system_u:object_r:tmpfs_t:s0 tclass=file permissive=1
+AVC avc: denied { setattr } for pid=1055 comm="systemd-pcrexte" name="tpm2-measure.log" dev="tmpfs" ino=69 scontext=system_u:system_r:systemd_pcrphase_t:s0 tcontext=system_u:object_r:tmpfs_t:s0 tclass=file permissive=1
+AVC avc: denied { write } for pid=1294 comm="systemd-pcrexte" name="tpm2-measure.log" dev="tmpfs" ino=69 scontext=system_u:system_r:systemd_pcrphase_t:s0 tcontext=system_u:object_r:tmpfs_t:s0 tclass=file permissive=1
+
+(4)
+Allow systemd_analyze_t to communicate with dbus
+
+AVC avc: denied { search } for pid=3131 comm="systemd-analyze" name="dbus" dev="tmpfs" ino=1644 scontext=system_u:system_r:systemd_analyze_t:s0 tcontext=system_u:object_r:system_dbusd_runtime_t:s0 tclass=dir permissive=1
+AVC avc: denied { write } for pid=3131 comm="systemd-analyze" name="system_bus_socket" dev="tmpfs" ino=1863 scontext=system_u:system_r:systemd_analyze_t:s0 tcontext=system_u:object_r:system_dbusd_runtime_t:s0 tclass=sock_file permissive=1
+AVC avc: denied { connectto } for pid=3131 comm="systemd-analyze" path="/run/dbus/system_bus_socket" scontext=system_u:system_r:systemd_analyze_t:s0 tcontext=system_u:system_r:system_dbusd_t:s0 tclass=unix_stream_socket permissive=1
+AVC avc: denied { search } for pid=3391 comm="systemd-analyze" name="dbus" dev="tmpfs" ino=1644 scontext=system_u:system_r:systemd_analyze_t:s0 tcontext=system_u:object_r:system_dbusd_runtime_t:s0 tclass=dir permissive=1
+USER_AVC pid=1275 uid=18 auid=4294967295 ses=4294967295 subj=system_u:system_r:system_dbusd_t:s0 msg='avc: denied { send_msg } for msgtype=method_call interface=org.freedesktop.DBus.Properties member=GetAll dest=org.freedesktop.systemd1 spid=3131 tpid=1 scontext=system_u:system_r:systemd_analyze_t:s0 tcontext=system_u:system_r:init_t:s0 tclass=dbus permissive=1 exe="/usr/bin/dbus-daemon" sauid=18 hostname=? addr=? terminal=?'
+USER_AVC pid=1275 uid=18 auid=4294967295 ses=4294967295 subj=system_u:system_r:system_dbusd_t:s0 msg='avc: denied { send_msg } for msgtype=method_call interface=org.freedesktop.DBus member=Hello dest=org.freedesktop.DBus spid=3131 scontext=system_u:system_r:systemd_analyze_t:s0 tcontext=system_u:system_r:system_dbusd_t:s0 tclass=dbus permissive=1 exe="/usr/bin/dbus-daemon" sauid=18 hostname=? addr=? terminal=?'
+
+(5)
+Allow systemd_logind_t to access /proc/* with initrc_t
+
+AVC avc: denied { search } for pid=1293 comm="systemd-logind" name="3652" dev="proc" ino=24139 scontext=system_u:system_r:systemd_logind_t:s0 tcontext=system_u:system_r:initrc_t:s0 tclass=dir permissive=1
+AVC avc: denied { read } for pid=1293 comm="systemd-logind" name="stat" dev="proc" ino=24143 scontext=system_u:system_r:systemd_logind_t:s0 tcontext=system_u:system_r:initrc_t:s0 tclass=file permissive=1
+AVC avc: denied { open } for pid=1293 comm="systemd-logind" path="/proc/3652/stat" dev="proc" ino=24143 scontext=system_u:system_r:systemd_logind_t:s0 tcontext=system_u:system_r:initrc_t:s0 tclass=file permissive=1
+AVC avc: denied { getattr } for pid=1293 comm="systemd-logind" path="/proc/3652/stat" dev="proc" ino=24143 scontext=system_u:system_r:systemd_logind_t:s0 tcontext=system_u:system_r:initrc_t:s0 tclass=file permissive=1
+AVC avc: denied { ioctl } for pid=1293 comm="systemd-logind" path="/proc/3652/stat" dev="proc" ino=24143 ioctlcmd=0x5401 scontext=system_u:system_r:systemd_logind_t:s0 tcontext=system_u:system_r:initrc_t:s0 tclass=file permissive=1
+
+(6)
+Allow systemd_networkd_t to search kernel debugging filesystem
+
+AVC avc: denied { search } for pid=1116 comm="systemd-network" name="bnxt_en" dev="debugfs" ino=31746 scontext=system_u:system_r:systemd_networkd_t:s0 tcontext=system_u:object_r:debugfs_t:s0 tclass=dir permissive=1
+
+Signed-off-by: Tan Jia Yong <jia.yong.tan@intel.com>
+---
+ policy/modules/system/systemd.te | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/policy/modules/system/systemd.te b/policy/modules/system/systemd.te
+index 3ad5bb651..6f58aa917 100644
+--- a/policy/modules/system/systemd.te
++++ b/policy/modules/system/systemd.te
+@@ -1,5 +1,11 @@
+ policy_module(systemd)
+ 
++gen_require(`
++        type cron_log_t;
++        type system_dbusd_runtime_t;
++        type debugfs_t;
++')
++
+ #########################################
+ #
+ # Declarations
+@@ -385,6 +391,13 @@ seutil_libselinux_linked(systemd_analyze_t)
+ 
+ systemd_log_parse_environment(systemd_analyze_t)
+ 
++# for analyze to communicate with dbus
++init_dbus_chat(systemd_analyze_t)
++dbus_send_system_bus(systemd_analyze_t)
++allow systemd_analyze_t system_dbusd_t:unix_stream_socket connectto;
++allow systemd_analyze_t system_dbusd_runtime_t:dir search;
++allow systemd_analyze_t system_dbusd_runtime_t:sock_file write;
++
+ ######################################
+ #
+ # Backlight local policy
+@@ -921,6 +934,10 @@ manage_files_pattern(systemd_logind_t, systemd_logind_inhibit_runtime_t, systemd
+ manage_fifo_files_pattern(systemd_logind_t, systemd_logind_inhibit_runtime_t, systemd_logind_inhibit_runtime_t)
+ init_runtime_filetrans(systemd_logind_t, systemd_logind_inhibit_runtime_t, dir, "inhibit")
+ 
++# for /proc/* with initrc_t
++allow systemd_logind_t initrc_t:dir search;
++allow systemd_logind_t initrc_t:file { getattr ioctl open read };
++
+ # for /run/systemd/userdb/io.systemd.Machine
+ allow systemd_logind_t systemd_machined_t:unix_stream_socket connectto;
+ 
+@@ -1183,6 +1200,7 @@ fs_search_cgroup_dirs(systemd_machine_id_setup_t)
+ fs_getattr_tmpfs(systemd_machine_id_setup_t)
+ fs_read_nsfs_files(systemd_machine_id_setup_t)
+ fs_unmount_tmpfs(systemd_machine_id_setup_t)
++fs_getattr_xattr_fs(systemd_machine_id_setup_t)
+ 
+ kernel_dontaudit_getattr_proc(systemd_machine_id_setup_t)
+ kernel_read_kernel_sysctls(systemd_machine_id_setup_t)
+@@ -1245,6 +1263,8 @@ kernel_request_load_module(systemd_networkd_t)
+ kernel_rw_net_sysctls(systemd_networkd_t)
+ kernel_dontaudit_getattr_proc(systemd_networkd_t)
+ kernel_rw_psi(systemd_networkd_t)
++# to search kernel debugging filesystem
++allow systemd_networkd_t debugfs_t:dir search;
+ 
+ corecmd_bin_entry_type(systemd_networkd_t)
+ corecmd_exec_bin(systemd_networkd_t)
+@@ -1545,6 +1565,8 @@ optional_policy(`
+ 
+ allow systemd_pcrphase_t self:capability dac_override;
+ dontaudit systemd_pcrphase_t self:capability net_admin;
++allow systemd_pcrphase_t tmpfs_t:dir { manage_dir_perms };
++allow systemd_pcrphase_t tmpfs_t:file { getattr lock open setattr write };
+ 
+ dev_read_sysfs(systemd_pcrphase_t)
+ dev_rw_tpm(systemd_pcrphase_t)
+@@ -1822,6 +1844,7 @@ allow systemd_tmpfiles_t systemd_journal_t:file relabel_file_perms;
+ allow systemd_tmpfiles_t systemd_tmpfiles_conf_t:dir list_dir_perms;
+ allow systemd_tmpfiles_t systemd_tmpfiles_conf_type:dir search_dir_perms;
+ allow systemd_tmpfiles_t systemd_tmpfiles_conf_type:file read_file_perms;
++allow systemd_tmpfiles_t cron_log_t:file getattr;
+ 
+ kernel_getattr_proc(systemd_tmpfiles_t)
+ kernel_read_kernel_sysctls(systemd_tmpfiles_t)
+-- 
+2.37.3
+

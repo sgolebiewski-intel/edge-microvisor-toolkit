@@ -1,0 +1,1 @@
+/usr/bin/telegraf   -- system_u:object_r:telegraf_exec_t:s0

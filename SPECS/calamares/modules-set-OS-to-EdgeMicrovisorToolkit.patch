@@ -1,0 +1,93 @@
+Subject: [PATCH] modules: set OS to Edge Microvisor Toolkit
+
+Signed-off-by: Lee Chee Yang <chee.yang.lee@intel.com>
+---
+ src/modules/partition/gui/ChoicePage.cpp | 2 +-
+ src/modules/users/MarinerConfJob.cpp     | 2 +-
+ src/modules/users/UsersPage.cpp          | 2 +-
+ src/modules/users/users.conf             | 2 +-
+ src/modules/welcome/WelcomePage.cpp      | 2 +-
+ src/modules/welcome/WelcomeViewStep.cpp  | 2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/modules/partition/gui/ChoicePage.cpp b/src/modules/partition/gui/ChoicePage.cpp
+index 2ecbc67..a447fa1 100644
+--- a/src/modules/partition/gui/ChoicePage.cpp
++++ b/src/modules/partition/gui/ChoicePage.cpp
+@@ -1280,7 +1280,7 @@ ChoicePage::setupActions()
+                                      "Changes can be reviewed before they are applied" ) );
+ 
+         m_eraseButton->setText( tr( "<strong>Erase disk</strong><br/>"
+-                                    "This will install Azure Linux on the currently selected "
++                                    "This will install Edge Microvisor Toolkit on the currently selected "
+                                     "storage device <font color=\"red\">deleting</font> all data "
+                                     "currently present on the selected storage device." ) ); 
+     );
+diff --git a/src/modules/users/MarinerConfJob.cpp b/src/modules/users/MarinerConfJob.cpp
+index cbfa65e..9c55e5e 100644
+--- a/src/modules/users/MarinerConfJob.cpp
++++ b/src/modules/users/MarinerConfJob.cpp
+@@ -66,7 +66,7 @@ MarinerconfJob::prettyName() const
+ QString
+ MarinerconfJob::prettyStatusMessage() const
+ {
+-    return tr( "Setting Azure Linux configuration for root." );
++    return tr( "Setting Edge Microvisor Toolkit configuration for root." );
+ }
+ 
+ 
+diff --git a/src/modules/users/UsersPage.cpp b/src/modules/users/UsersPage.cpp
+index db059a2..61d2797 100644
+--- a/src/modules/users/UsersPage.cpp
++++ b/src/modules/users/UsersPage.cpp
+@@ -116,7 +116,7 @@ UsersPage::UsersPage( Config* config, QWidget* parent )
+     connect( config, &Config::userPasswordSecondaryChanged, ui->textBoxUserVerifiedPassword, &QLineEdit::setText );
+     connect( config, &Config::userPasswordStatusChanged, this, &UsersPage::reportUserPasswordStatus );
+ 
+-    const QString DefaultHostnamePrefix = "azurelinux";
++    const QString DefaultHostnamePrefix = "edgemicrovisortoolkit";
+     ui->textBoxHostname->setText( randomHostname(DefaultHostnamePrefix) );
+     config->setHostName( ui->textBoxHostname->text() );
+     connect( ui->textBoxHostname, &QLineEdit::textEdited, config, &Config::setHostName );
+diff --git a/src/modules/users/users.conf b/src/modules/users/users.conf
+index f3b5c00..2dc145f 100644
+--- a/src/modules/users/users.conf
++++ b/src/modules/users/users.conf
+@@ -262,7 +262,7 @@ user:
+ hostname:
+   location: EtcFile
+   writeHostsFile: true
+-  template: "azurelinux-${cpu}"
++  template: "edgemicrovisortoolkit-${cpu}"
+   forbidden_names: [ localhost ]
+ 
+ presets:
+diff --git a/src/modules/welcome/WelcomePage.cpp b/src/modules/welcome/WelcomePage.cpp
+index 99826d3..084b239 100644
+--- a/src/modules/welcome/WelcomePage.cpp
++++ b/src/modules/welcome/WelcomePage.cpp
+@@ -118,7 +118,7 @@ WelcomePage::initSkus()
+     ui->skuWidget->clear();
+     ui->skuWidget->setInsertPolicy( QComboBox::InsertAlphabetically );
+ 
+-    const QString skuDir = "/etc/calamares/azurelinux-skus/";
++    const QString skuDir = "/etc/calamares/edgemicrovisortoolkit-skus/";
+     QDirIterator it(skuDir, QStringList() << "*.json", QDir::Files);
+     while (it.hasNext())
+     {
+diff --git a/src/modules/welcome/WelcomeViewStep.cpp b/src/modules/welcome/WelcomeViewStep.cpp
+index 725b28c..0df3fb0 100644
+--- a/src/modules/welcome/WelcomeViewStep.cpp
++++ b/src/modules/welcome/WelcomeViewStep.cpp
+@@ -97,7 +97,7 @@ void
+ WelcomeViewStep::onLeave()
+ {
+     Calamares::GlobalStorage* gs = Calamares::JobQueue::instance()->globalStorage();
+-    const QString skuDir = "/etc/calamares/azurelinux-skus/";
++    const QString skuDir = "/etc/calamares/edgemicrovisortoolkit-skus/";
+     const QString KeySystemConfigs = "SystemConfigs";
+     const QString KeyBootType = "BootType";
+     const QString MarinerConfGS = "MARINERCONF";
+-- 
+2.43.0
+

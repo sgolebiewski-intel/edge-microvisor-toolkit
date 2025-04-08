@@ -1,0 +1,6 @@
+{
+    "packages": [
+        "tpm-cryptsetup"
+    ],
+    "_comment": "This installs Full Disk Encryption with DM-verity dracut module"
+}

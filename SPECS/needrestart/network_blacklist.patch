@@ -1,0 +1,26 @@
+From a0d2092cb301e6985f07cb56ad5072d5a56ad734 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Marc=20Dequ=C3=A8nes=20=28Duck=29?= <duck@redhat.com>
+Date: Wed, 27 Mar 2019 22:39:06 +0900
+Subject: [PATCH] Add network.service in the blacklist
+
+On Red Hat systems without NetworkManager installed, this service
+handles network configuration and MUST NOT be restarted.
+---
+ ex/needrestart.conf | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/ex/needrestart.conf b/ex/needrestart.conf
+index 7d9dc4f..1eb587f 100644
+--- a/ex/needrestart.conf
++++ b/ex/needrestart.conf
+@@ -98,7 +98,9 @@ $nrconf{override_rc} = {
+ 
+     # networking stuff
+     qr(^bird) => 0,
+-    qr(^network-manager) => 0,
++    # network-manager but also the network service
++    # (used on Red Hat systems without NetworkManager)
++    qr(^network) => 0,
+     qr(^NetworkManager) => 0,
+     qr(^ModemManager) => 0,
+     qr(^wpa_supplicant) => 0,

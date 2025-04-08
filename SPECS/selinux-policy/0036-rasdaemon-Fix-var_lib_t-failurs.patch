@@ -1,0 +1,103 @@
+From d40f8e4b395b3f93722453080c69df32729bedf9 Mon Sep 17 00:00:00 2001
+From: "Tan, Jia Yong" <jia.yong.tan@intel.com>
+Date: Tue, 15 Oct 2024 13:22:44 +0800
+Subject: [PATCH] rasdaemon: Fix var_lib_t failurs
+
+Fix rasdaemon selinux policy for /var/lib/rasdaemon dir.
+
+Audit denied logs:
+avc:  denied  { write } for  pid=911 comm="rasdaemon" name="lib"
+dev="overlay" ino=3 scontext=system_u:system_r:rasdaemon_t:s0
+tcontext=system_u:object_r:var_lib_t:s0 tclass=dir permissive=0
+avc:  denied  { create } for  pid=6572 comm="rasdaemon" name="rasdaemon"
+scontext=system_u:system_r:rasdaemon_t:s0
+tcontext=system_u:object_r:var_lib_t:s0 tclass=dir permissive=1
+avc:  denied  { add_name } for  pid=6572 comm="rasdaemon"
+name="rasdaemon" scontext=system_u:system_r:rasdaemon_t:s0
+tcontext=system_u:object_r:var_lib_t:s0 tclass=dir permissive=1
+avc:  denied  { write } for  pid=6572 comm="rasdaemon" name="lib"
+dev="overlay" ino=3 scontext=system_u:system_r:rasdaemon_t:s0
+tcontext=system_u:object_r:var_lib_t:s0 tclass=dir permissive=1
+avc:  denied  { read write open } for  pid=6572 comm="rasdaemon"
+path="/var/lib/rasdaemon/ras-mc_event.db" dev="overlay" ino=349
+scontext=system_u:system_r:rasdaemon_t:s0
+tcontext=system_u:object_r:var_lib_t:s0 tclass=file permissive=1
+avc:  denied  { create } for  pid=6572 comm="rasdaemon"
+name="ras-mc_event.db" scontext=system_u:system_r:rasdaemon_t:s0
+tcontext=system_u:object_r:var_lib_t:s0 tclass=file permissive=1
+avc:  denied  { getattr } for  pid=6572 comm="rasdaemon"
+path="/var/lib/rasdaemon/ras-mc_event.db" dev="overlay" ino=349
+scontext=system_u:system_r:rasdaemon_t:s0
+tcontext=system_u:object_r:var_lib_t:s0 tclass=file permissive=1
+avc:  denied  { lock } for  pid=6572 comm="rasdaemon"
+path="/var/lib/rasdaemon/ras-mc_event.db" dev="overlay" ino=349
+scontext=system_u:system_r:rasdaemon_t:s0
+tcontext=system_u:object_r:var_lib_t:s0 tclass=file permissive=1
+avc:  denied  { setattr } for  pid=6572 comm="rasdaemon"
+name="ras-mc_event.db-journal" dev="overlay" ino=350
+scontext=system_u:system_r:rasdaemon_t:s0
+tcontext=system_u:object_r:var_lib_t:s0 tclass=file permissive=1
+avc:  denied  { read } for  pid=6572 comm="rasdaemon" name="rasdaemon"
+dev="overlay" ino=487 scontext=system_u:system_r:rasdaemon_t:s0
+tcontext=system_u:object_r:var_lib_t:s0 tclass=dir permissive=1
+avc:  denied  { unlink } for  pid=6572 comm="rasdaemon"
+name="ras-mc_event.db-journal" dev="overlay" ino=350
+scontext=system_u:system_r:rasdaemon_t:s0
+tcontext=system_u:object_r:var_lib_t:s0 tclass=file permissive=1
+avc:  denied  { remove_name } for  pid=6572 comm="rasdaemon"
+name="ras-mc_event.db-journal" dev="overlay" ino=350
+scontext=system_u:system_r:rasdaemon_t:s0
+tcontext=system_u:object_r:var_lib_t:s0 tclass=dir permissive=1
+
+Signed-off-by: Tan, Jia Yong <jia.yong.tan@intel.com>
+---
+ policy/modules/services/rasdaemon.fc |  2 +-
+ policy/modules/services/rasdaemon.te | 12 +++++++-----
+ 2 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/policy/modules/services/rasdaemon.fc b/policy/modules/services/rasdaemon.fc
+index 9a83feb4f..674e9e49c 100644
+--- a/policy/modules/services/rasdaemon.fc
++++ b/policy/modules/services/rasdaemon.fc
+@@ -1,3 +1,3 @@
+ /usr/sbin/rasdaemon			--	gen_context(system_u:object_r:rasdaemon_exec_t,s0)
+-/var/lib/rasdaemon(/.*)?			gen_context(system_u:object_r:rasdaemon_var_t,s0)
++/var/lib/rasdaemon(/.*)?			gen_context(system_u:object_r:rasdaemon_var_lib_t,s0)
+ 
+diff --git a/policy/modules/services/rasdaemon.te b/policy/modules/services/rasdaemon.te
+index 9a65d5d74..633613756 100644
+--- a/policy/modules/services/rasdaemon.te
++++ b/policy/modules/services/rasdaemon.te
+@@ -9,8 +9,9 @@ type rasdaemon_t;
+ type rasdaemon_exec_t;
+ init_daemon_domain(rasdaemon_t, rasdaemon_exec_t)
+ 
+-type rasdaemon_var_t;
+-files_type(rasdaemon_var_t)
++type rasdaemon_var_lib_t;
++files_type(rasdaemon_var_lib_t)
++
+ 
+ ########################################
+ #
+@@ -20,8 +21,10 @@ files_type(rasdaemon_var_t)
+ allow rasdaemon_t self:process getsched;
+ allow rasdaemon_t self:capability sys_rawio;
+ 
+-allow rasdaemon_t rasdaemon_var_t:dir manage_dir_perms;
+-allow rasdaemon_t rasdaemon_var_t:file manage_file_perms;
++allow rasdaemon_t rasdaemon_var_lib_t:dir manage_dir_perms;
++allow rasdaemon_t rasdaemon_var_lib_t:file manage_file_perms;
++
++files_var_lib_filetrans(rasdaemon_t, rasdaemon_var_lib_t, { dir file  })
+ 
+ kernel_read_debugfs(rasdaemon_t)
+ kernel_read_system_state(rasdaemon_t)
+@@ -38,4 +41,3 @@ fs_rw_tracefs_files(rasdaemon_t)
+ 
+ logging_send_syslog_msg(rasdaemon_t)
+ miscfiles_read_localization(rasdaemon_t)
+-
+-- 
+2.34.1
+

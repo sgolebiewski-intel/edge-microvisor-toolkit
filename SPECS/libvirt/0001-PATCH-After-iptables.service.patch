@@ -1,0 +1,26 @@
+From c6bc9a3ecac51d3547513a0af688f399a89a9084 Mon Sep 17 00:00:00 2001
+From: Swee Yee Fonn <swee.yee.fonn@intel.com>
+Date: Mon, 6 Jan 2025 05:16:36 -0800
+Subject: [PATCH] [PATCH] After iptables.service
+
+Add After iptables.service so that libvirtd added rules
+are not overwritten.
+---
+ src/remote/libvirtd.service.in | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/remote/libvirtd.service.in b/src/remote/libvirtd.service.in
+index 250b4a6fc3..271ecf06e7 100644
+--- a/src/remote/libvirtd.service.in
++++ b/src/remote/libvirtd.service.in
+@@ -23,6 +23,7 @@ After=apparmor.service
+ After=remote-fs.target
+ After=systemd-machined.service
+ After=xencommons.service
++After=iptables.service
+ Conflicts=xendomains.service
+ 
+ [Service]
+-- 
+2.34.1
+

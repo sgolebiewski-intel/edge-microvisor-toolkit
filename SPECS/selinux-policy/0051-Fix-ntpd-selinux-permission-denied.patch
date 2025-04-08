@@ -1,0 +1,46 @@
+From 52758aa6715345ee28a5deff789335198c31b991 Mon Sep 17 00:00:00 2001
+From: "Tan, Jia Yong" <jia.yong.tan@intel.com>
+Date: Fri, 10 Jan 2025 16:56:05 +0800
+Subject: [PATCH] Fix ntpd selinux permission denied
+
+Audit log:
+USER_AVC pid=1 uid=0 auid=4294967295 ses=4294967295
+subj=system_u:system_r:init_t:s0 msg='avc:  denied  { status } for
+auid=n/a uid=0 gid=0
+path="/usr/lib/systemd/system/systemd-timesyncd.service"
+cmdline="/usr/lib/systemd/systemd-timedated"
+function="mac_selinux_filter" scontext=system_u:system_r:ntpd_t:s0
+tcontext=system_u:object_r:systemd_unit_t:s0 tclass=service permissive=1
+exe="/usr/lib/systemd/systemd" sauid=0 hostname=? addr=? terminal=?'
+USER_AVC pid=1 uid=0 auid=4294967295 ses=4294967295
+subj=system_u:system_r:init_t:s0 msg='avc:  denied  { stop } for
+auid=n/a uid=0 gid=0
+path="/usr/lib/systemd/system/systemd-timesyncd.service"
+cmdline="/usr/lib/systemd/systemd-timedated"
+function="bus_unit_method_start_generic"
+scontext=system_u:system_r:ntpd_t:s0
+tcontext=system_u:object_r:systemd_unit_t:s0 tclass=service permissive=1
+exe="/usr/lib/systemd/systemd" sauid=0 hostname=? addr=? terminal=?'
+
+Signed-off-by: Tan, Jia Yong <jia.yong.tan@intel.com>
+---
+ policy/modules/services/ntp.te | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/policy/modules/services/ntp.te b/policy/modules/services/ntp.te
+index 8a8534294..5e653d82d 100644
+--- a/policy/modules/services/ntp.te
++++ b/policy/modules/services/ntp.te
+@@ -139,6 +139,9 @@ miscfiles_read_localization(ntpd_t)
+ userdom_dontaudit_use_unpriv_user_fds(ntpd_t)
+ userdom_list_user_home_dirs(ntpd_t)
+ 
++init_get_generic_units_status(ntpd_t)
++init_stop_generic_units(ntpd_t)
++
+ ifdef(`init_systemd',`
+ 	allow ntpd_t self:process setfscreate;
+ 
+-- 
+2.34.1
+

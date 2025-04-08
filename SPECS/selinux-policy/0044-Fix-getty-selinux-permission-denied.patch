@@ -1,0 +1,33 @@
+From 03405899b6740de4f6cb6d2f4dfa4735c3e86590 Mon Sep 17 00:00:00 2001
+From: Tan Jia Yong <jia.yong.tan@intel.com>
+Date: Tue, 26 Nov 2024 13:24:35 +0800
+Subject: [PATCH] Fix getty selinux permission denied
+
+Add rules to allow getty to search tmpfs_t directory
+
+Audit denied logs:
+EdgeMicrovisorToolkit audit[1351]: AVC avc: denied { search } for pid=1351 
+comm="agetty" name="credentials" dev="tmpfs" ino=5 
+scontext=system_u:system_r:getty_t:s0 tcontext=system_u:object_r:tmpfs_t:s0 
+tclass=dir permissive=1
+
+Signed-off-by: Tan Jia Yong <jia.yong.tan@intel.com>
+---
+ policy/modules/system/getty.te | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/policy/modules/system/getty.te b/policy/modules/system/getty.te
+index a900226bf..302824094 100644
+--- a/policy/modules/system/getty.te
++++ b/policy/modules/system/getty.te
+@@ -73,6 +73,7 @@ files_dontaudit_search_var_lib(getty_t)
+ fs_search_auto_mountpoints(getty_t)
+ fs_getattr_cgroup(getty_t)
+ fs_search_cgroup_dirs(getty_t)
++fs_search_tmpfs(getty_t)
+ # for error condition handling
+ fs_getattr_xattr_fs(getty_t)
+ 
+-- 
+2.37.3
+

@@ -1,0 +1,33 @@
+From 6e825f86e99b307751028616f28402c2274d8e45 Mon Sep 17 00:00:00 2001
+From: Tan Jia Yong <jia.yong.tan@intel.com>
+Date: Wed, 23 Oct 2024 16:23:48 +0800
+Subject: [PATCH] Fix systemd-udevd selinux permission denied
+
+Allow systemd-udevd to search root dir with tmpfs_t
+To search the root directory to locate files or subdirectories necessary for its operation.
+
+Audit denied logs:
+avc:  denied  { search } for  pid=747 comm="systemd-udevd" name="/"
+dev="overlay" ino=2 scontext=system_u:system_r:udev_t:s0
+tcontext=system_u:object_r:tmpfs_t:s0 tclass=dir permissive=1
+
+Signed-off-by: Tan Jia Yong <jia.yong.tan@intel.com>
+---
+ policy/modules/system/udev.te | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/policy/modules/system/udev.te b/policy/modules/system/udev.te
+index aac135f9f..a65b02738 100644
+--- a/policy/modules/system/udev.te
++++ b/policy/modules/system/udev.te
+@@ -147,6 +147,7 @@ fs_rw_anon_inodefs_files(udev_t)
+ fs_search_tracefs(udev_t)
+ fs_manage_efivarfs_files(udev_t)
+ fs_watch_memory_pressure(udev_t)
++fs_search_tmpfs(udev_t)
+ 
+ mls_file_read_all_levels(udev_t)
+ mls_file_write_all_levels(udev_t)
+-- 
+2.37.3
+

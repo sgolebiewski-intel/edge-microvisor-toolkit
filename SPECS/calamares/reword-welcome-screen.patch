@@ -1,0 +1,38 @@
+Subject: [PATCH] reword welcome screen
+
+Signed-off-by: Lee Chee Yang <chee.yang.lee@intel.com>
+---
+ src/modules/welcome/Config.cpp      | 4 ++--
+ src/modules/welcome/WelcomePage.cpp | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/modules/welcome/Config.cpp b/src/modules/welcome/Config.cpp
+index 2bce564..6682e1c 100644
+--- a/src/modules/welcome/Config.cpp
++++ b/src/modules/welcome/Config.cpp
+@@ -77,8 +77,7 @@ Config::retranslate()
+     }
+     else
+     {
+-        m_warningMessage = tr( "This program will ask you some questions and "
+-                               "set up %2 on your computer." )
++        m_warningMessage = tr( "Follow step-by-step instructions to set up your system quickly." )
+                                .arg( branding ? branding->productName() : QString() );
+     }
+ 
+diff --git a/src/modules/welcome/WelcomePage.cpp b/src/modules/welcome/WelcomePage.cpp
+index 084b239..fca9dbe 100644
+--- a/src/modules/welcome/WelcomePage.cpp
++++ b/src/modules/welcome/WelcomePage.cpp
+@@ -63,7 +63,7 @@ WelcomePage::WelcomePage( Config* config, QWidget* parent )
+     ui->mainText->setWordWrap( true );
+     ui->mainText->setOpenExternalLinks( true );
+ 
+-    QString message = tr( "<h1>Welcome to the %1 installer.</h1>" );
++    QString message = tr( "<h1>Get Started with %1</h1>" );
+     ui->mainText->setText( message.arg( Branding::instance()->versionedName() ) );
+ 
+     // insert system-check widget below welcome text
+-- 
+2.43.0
+

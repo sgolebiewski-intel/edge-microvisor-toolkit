@@ -1,0 +1,8 @@
+{
+ "Signatures": {
+  "COPYING": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+  "module-setup.sh": "96a201914ffdaa9146eb05c4244811dd686f9e03475277963ca2dcd972ca27d5",
+  "persistent-mount.sh": "301e40e1d73f92fe347937ce20de66f7d785fa6dcbc4dfc23e2fd7666da32ee1",
+  "persistent-mount.conf": "f22c8b3e81eea49e3fc85c7d8a500d58af73d8c97c403b1a8483dd24ff192eb6"
+ }
+}

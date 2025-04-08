@@ -1,0 +1,48 @@
+From 9a475cf88c997535ba503a6cac2d11f381f4d185 Mon Sep 17 00:00:00 2001
+From: Tan Jia Yong <jia.yong.tan@intel.com>
+Date: Thu, 28 Nov 2024 16:52:13 +0800
+Subject: [PATCH] Fix tpm2_abrmd selinux permission denied
+
+-Allow tpm2 to communicate with unconfined
+-Allow tpm2 to read and open /dev/urandom chr_file
+
+Audit denied log:
+AVC avc: denied { read } for pid=1669 comm="tpm2-abrmd" name="urandom" dev="devtmpfs" ino=8 scontext=system_u:system_r:tpm2_abrmd_t:s0 tcontext=system_u:object_r:urandom_device_t:s0 tclass=chr_file permissive=1
+AVC avc: denied { open } for pid=1669 comm="tpm2-abrmd" path="/dev/urandom" dev="devtmpfs" ino=8 scontext=system_u:system_r:tpm2_abrmd_t:s0 tcontext=system_u:object_r:urandom_device_t:s0 tclass=chr_file permissive=1
+USER_AVC pid=1275 uid=18 auid=4294967295 ses=4294967295 subj=system_u:system_r:system_dbusd_t:s0 msg='avc: denied { send_msg } for msgtype=method_return dest=:1.22 spid=1669 tpid=1664 scontext=system_u:system_r:tpm2_abrmd_t:s0 tcontext=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 tclass=dbus permissive=1 exe="/usr/bin/dbus-daemon" sauid=18 hostname=? addr=? terminal=?'
+AVC avc: denied { read write } for pid=1275 comm="dbus-daemon" path="socket:[28934]" dev="sockfs" ino=28934 scontext=system_u:system_r:system_dbusd_t:s0 tcontext=system_u:system_r:tpm2_abrmd_t:s0 tclass=unix_stream_socket permissive=1
+
+Signed-off-by: Tan Jia Yong <jia.yong.tan@intel.com>
+---
+ policy/modules/services/tpm2.te | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/policy/modules/services/tpm2.te b/policy/modules/services/tpm2.te
+index 48173de1b..8fdfedb60 100644
+--- a/policy/modules/services/tpm2.te
++++ b/policy/modules/services/tpm2.te
+@@ -1,5 +1,9 @@
+ policy_module(tpm2)
+ 
++gen_require(`
++	type urandom_device_t;
++ ')
++
+ ########################################
+ #
+ # Declarations
+@@ -31,6 +35,11 @@ kernel_read_system_state(tpm2_abrmd_t)
+ 
+ logging_send_syslog_msg(tpm2_abrmd_t)
+ 
++# for unconfined user
++unconfined_dbus_send(tpm2_abrmd_t)
++# for /dev/urandom
++allow tpm2_abrmd_t urandom_device_t:chr_file { open read };
++
+ optional_policy(`
+ 	dbus_system_domain(tpm2_abrmd_t, tpm2_abrmd_exec_t)
+ ')
+-- 
+2.37.3
+

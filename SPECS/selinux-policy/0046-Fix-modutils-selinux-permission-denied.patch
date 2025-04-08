@@ -1,0 +1,33 @@
+From 2eae1c2f02682e0ffaa45038e112d11be1058dde Mon Sep 17 00:00:00 2001
+From: Tan Jia Yong <jia.yong.tan@intel.com>
+Date: Wed, 27 Nov 2024 09:35:01 +0800
+Subject: [PATCH] Fix modutils selinux permission denied
+
+Allow modutils to search dosfs filesystem.
+
+Audit denied logs:
+EdgeMicrovisorToolkit audit[2832]: AVC avc: denied { search } for pid=2832 
+comm="modinfo" name="IO" dev="sdc1" ino=1093 
+scontext=unconfined_u:unconfined_r:kmod_t:s0-s0:c0.c1023 
+tcontext=system_u:object_r:dosfs_t:s0 tclass=dir permissive=1
+
+Signed-off-by: Tan Jia Yong <jia.yong.tan@intel.com>
+---
+ policy/modules/system/modutils.te | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/policy/modules/system/modutils.te b/policy/modules/system/modutils.te
+index 996ecac85..9f85e5076 100644
+--- a/policy/modules/system/modutils.te
++++ b/policy/modules/system/modutils.te
+@@ -101,6 +101,7 @@ files_manage_kernel_modules(kmod_t)
+ fs_getattr_xattr_fs(kmod_t)
+ fs_dontaudit_use_tmpfs_chr_dev(kmod_t)
+ fs_search_tracefs(kmod_t)
++fs_search_dos(kmod_t)
+ 
+ init_rw_initctl(kmod_t)
+ init_use_fds(kmod_t)
+-- 
+2.37.3
+

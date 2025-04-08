@@ -1,0 +1,31 @@
+---
+componentName:  EdgeMicrovisorToolkit
+
+welcomeStyleCalamares:   false
+
+strings:
+    productName:         "Edge Microvisor Toolkit"
+    shortProductName:    "Edge Microvisor Toolkit"
+    version:             "${VERSION}"
+    shortVersion:        "${VERSION_ID}"
+    versionedName:       "Edge Microvisor Toolkit ${VERSION_ID}"
+    shortVersionedName:  "Edge Microvisor Toolkit ${VERSION_ID}"
+    bootloaderEntryName: "Edge Microvisor Toolkit"
+
+welcomeExpandingLogo:   false
+
+images:
+#    productLogo:         "emt-logo.png"
+#    productIcon:         "emt-logo.png"
+    productWelcome:      "emt-welcome.png"
+
+# The slideshow is displayed during execution steps (e.g. when the
+# installer is actually writing to disk and doing other slow things).
+slideshow:               "show.qml"
+
+style:
+   sidebarBackground:    "#292F34"
+   sidebarText:          "#FFFFFF"
+   sidebarTextSelect:    "#292F34"
+   sidebarTextHighlight: "#00A4EF"
+

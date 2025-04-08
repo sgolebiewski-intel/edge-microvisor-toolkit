@@ -1,0 +1,7 @@
+{
+    "packages": [
+        "rsync",
+        "persistent-mount"
+    ],
+    "_comment": "This installs persistent-mount dracut module and its depedencies"
+}

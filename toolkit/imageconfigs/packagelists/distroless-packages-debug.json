@@ -1,0 +1,6 @@
+{
+    "packages": [
+        "distroless-packages-debug",
+        "prebuilt-ca-certificates"
+    ]
+}

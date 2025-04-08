@@ -1,0 +1,9 @@
+{
+  "Signatures": {
+    "dnf__plugin.py": "2337f9f012db774d615d1d5d3d4e2ce320f5054e9ecd4b2c55df94cbadd89db8",
+    "network_blacklist.patch": "9185de9d07d797349aad2803c9bbe08de60820fd4fd2a2e4a04351c90e2fc6ec",
+    "restart.d__auditd.service": "ef336669dbe7c61e8b12a154dfb8ae1b74fea2053aa355c64b0f046126705a62",
+    "yum__plugin.py": "249c832d4547749fe0a9e6d40da8e4c4c33ace4aaa1991375130357186225164",
+    "needrestart-3.6.tar.gz": "3dced40d6116287b163da018d57014b0b7cee04794a95f8602126e2c296ed1a7"
+  }
+}

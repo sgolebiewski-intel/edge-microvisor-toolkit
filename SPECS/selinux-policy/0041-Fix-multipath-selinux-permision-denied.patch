@@ -1,0 +1,60 @@
+From cabebf753cecc286c50434c8a84425851e2d1281 Mon Sep 17 00:00:00 2001
+From: Tan Jia Yong <jia.yong.tan@intel.com>
+Date: Wed, 23 Oct 2024 15:42:14 +0800
+Subject: [PATCH] Fix multipath selinux permision denied
+
+Allow multipath to access /etc/systemd/system
+To read and interact with systemd unit files to manage or configure services
+
+Allow multipath to read init_runtime dir
+To access runtime files and directories managed by the init system
+
+Audit denied logs:
+avc:  denied  { read } for  pid=765 comm="multipath" name="system"
+dev="sda3" ino=98124 scontext=system_u:system_r:lvm_t:s0
+tcontext=system_u:object_r:systemd_unit_t:s0 tclass=dir permissive=1
+avc:  denied  { open } for  pid=765 comm="multipath"
+path="/etc/systemd/system" dev="sda3" ino=98124
+scontext=system_u:system_r:lvm_t:s0 tcontext=system_u:object_r:systemd_unit_t:s0
+tclass=dir permissive=1
+avc:  denied  { getattr } for  pid=765 comm="multipath" path="/etc/systemd/system"
+dev="sda3" ino=98124 scontext=system_u:system_r:lvm_t:s0
+tcontext=system_u:object_r:systemd_unit_t:s0 tclass=dir permissive=1
+avc:  denied  { search } for  pid=765 comm="multipath" name="system"
+ dev="sda3" ino=98124 scontext=system_u:system_r:lvm_t:s0
+tcontext=system_u:object_r:systemd_unit_t:s0 tclass=dir permissive=1
+avc:  denied  { read } for  pid=765 comm="multipath" name="system"
+dev="tmpfs" ino=3 scontext=system_u:system_r:lvm_t:s0
+tcontext=system_u:object_r:init_runtime_t:s0 tclass=dir permissive=1
+
+Signed-off-by: Tan Jia Yong <jia.yong.tan@intel.com>
+---
+ policy/modules/system/lvm.te | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/policy/modules/system/lvm.te b/policy/modules/system/lvm.te
+index fd4dcad24..dbd3a29ff 100644
+--- a/policy/modules/system/lvm.te
++++ b/policy/modules/system/lvm.te
+@@ -1,5 +1,9 @@
+ policy_module(lvm)
+ 
++gen_require(`
++	type systemd_unit_t;
++')
++
+ ########################################
+ #
+ # Declarations
+@@ -216,6 +220,8 @@ seutil_sigchld_newrole(lvm_t)
+ # multipath
+ sysnet_read_config(lvm_t)
+ sysnet_write_config(lvm_t)
++allow lvm_t init_runtime_t:dir read;
++allow lvm_t systemd_unit_t:dir { getattr open read search };
+ 
+ userdom_use_inherited_user_terminals(lvm_t)
+ 
+-- 
+2.43.0
+

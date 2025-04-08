@@ -1,0 +1,40 @@
+From 69fd974c7d474f321bf25c5908f8443f9102979f Mon Sep 17 00:00:00 2001
+From: Tan Jia Yong <jia.yong.tan@intel.com>
+Date: Thu, 28 Nov 2024 15:06:05 +0800
+Subject: [PATCH] Fix dbus selinux permission denied
+
+Allow dbus daemon to communicate with tpm2_abrmd
+
+Audit denied log:
+AVC avc: denied { read write } for pid=1275 comm="dbus-daemon" path="socket:[28934]" dev="sockfs" ino=28934 scontext=system_u:system_r:system_dbusd_t:s0 tcontext=system_u:system_r:tpm2_abrmd_t:s0 tclass=unix_stream_socket permissive=1
+
+Signed-off-by: Tan Jia Yong <jia.yong.tan@intel.com>
+---
+ policy/modules/services/dbus.te | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/policy/modules/services/dbus.te b/policy/modules/services/dbus.te
+index 6ae874dd7..0823bf569 100644
+--- a/policy/modules/services/dbus.te
++++ b/policy/modules/services/dbus.te
+@@ -2,6 +2,7 @@ policy_module(dbus)
+ 
+ gen_require(`
+ 	class dbus all_dbus_perms;
++	type tpm2_abrmd_t;
+ ')
+ 
+ ########################################
+@@ -195,6 +196,9 @@ userdom_dontaudit_search_user_home_dirs(system_dbusd_t)
+ # read a file in ~/.local/share
+ userdom_read_user_home_content_files(system_dbusd_t)
+ 
++# for communication between dbus and tpm2 
++allow system_dbusd_t tpm2_abrmd_t:unix_stream_socket { read write };
++
+ ifdef(`init_systemd', `
+ 	# gdm3 causes system_dbusd_t to want this access
+ 	dev_rw_dri(system_dbusd_t)
+-- 
+2.37.3
+

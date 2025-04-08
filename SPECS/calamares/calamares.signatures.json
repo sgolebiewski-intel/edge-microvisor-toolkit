@@ -1,0 +1,17 @@
+{
+ "Signatures": {
+  "emt-welcome.png": "b1b74705e6d677b5099126e061b264942d8457a3335af608ea2588486ab9df2b",
+  "branding.desc": "f25e4f3d0061283b4a9c023db44458cd48f26330023429e4f36e867d50149baa",
+  "calamares-3.3.1.tar.gz": "c5a6dd7d2fb7dc5d8a863f37f6f64782b88f79e341f7bf8504eb98dc31f714ef",
+  "calamares-auto_de.ts": "4a24d817979a83c3f08c163b05f5a4f34a992c1f798a12f3a6b50cde75a852d8",
+  "calamares-auto_fr.ts": "a65dd534637607533cd725aee3151f10f56b7f606b41fbd3ceeae13d61d8a98f",
+  "calamares-auto_it.ts": "16c666c68dfd16ecbf45e07312f435859a66f689faa6e751c08f15ef9cfd7a7e",
+  "calamares-finished-3.0.2.tar.gz": "b5c8137d2b4c05db6bc03ac3ba8f2ea81512563cf2b1c1045cbd233ee2794e8d",
+  "calamares-partition-3.0.3.tar.gz": "5e6a1bd19e08850a3e5c96fd1b7f1c9de54a605d3103464de45c1a68df4a26dd",
+  "calamares-users-3.0.3.tar.gz": "f8a23789e5d449058deeeb4c054a651c3d2eccf03c21e4424b698c8e0a7b0946",
+  "calamares-welcome-3.0.2.tar.gz": "031ec9dfbf7f6c11c89fe06ac8d9c33c9a0ea0e62b6832bf17e1499d24826440",
+  "settings.conf": "7bb9ae6634ce40013400163435fc62166a8d0fe0849c9dd0b729662971a06f51",
+  "show.qml": "f1a75a7ee5f06dece6bbed103ef7e3a9886fb574f8a060e5a690bc28435d39fc",
+  "stylesheet.qss": "9707878d63c9591fd83096d1650ada773bf5e85797fd3fbfc19555ef39ffa30a"
+ }
+}

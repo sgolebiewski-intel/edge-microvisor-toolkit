@@ -1,0 +1,1 @@
+/usr/bin/fluent-bit -- system_u:object_r:fluent_bit_exec_t:s0

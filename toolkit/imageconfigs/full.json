@@ -1,0 +1,32 @@
+{
+    "SystemConfigs": [
+        {
+            "Name": "Edge Microvisor Toolkit",
+            "PackageLists": [
+                "packagelists/grub2-mkconfig.json",
+                "packagelists/developer-packages.json",
+                "packagelists/virtualization-host-packages.json",
+                "packagelists/core-packages-image.json",
+                "packagelists/core-tools-packages.json",
+                "packagelists/ssh-server.json",
+                "packagelists/selinux-full.json",
+                "packagelists/drtm.json",
+                "packagelists/virt-guest-packages.json"
+            ],
+            "KernelCommandLine": {
+                "SELinux": "permissive"
+            },
+            "KernelOptions": {
+                "default": "kernel"
+            },
+            "AdditionalFiles": {
+                "additionalconfigs/99-dhcp-en.network": "/etc/systemd/network/99-dhcp-en.network"
+            },
+            "PostInstallScripts": [
+                {
+                    "Path": "additionalconfigs/configure-systemd-networkd-client-identifier.sh"
+                }
+            ]
+        }
+    ]
+}
