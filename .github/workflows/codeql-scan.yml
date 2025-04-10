@@ -1,0 +1,49 @@
+name: CodeQL Scan
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main, 3.0]
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+      - 3.0
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+
+jobs:
+  codeql:
+    name: CodeQL Scan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: python
+            build-mode: none
+          - language: actions
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: ${{ matrix.build-mode }}
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{ matrix.language }}"
+        upload: false
+    - name: Prepare CodeQL results
+      run: |
+        mv ../results/ .
+    - name: Upload CodeQL results to GitHub
+      uses: actions/upload-artifact@v4
+      with:
+        name: codeql-results-${{ github.run_id }}-${{ matrix.language }}
+        path: './results/${{ matrix.language }}.sarif'
