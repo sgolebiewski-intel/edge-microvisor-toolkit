@@ -1,7 +1,7 @@
 Summary:        Platform Observability Agent
 Name:           platform-observability-agent
 Version:        1.8.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 License:        Apache-2.0
 Vendor:         Intel Corporation
 Distribution:   Edge Microvisor Toolkit
@@ -128,6 +128,9 @@ mkdir -p %{buildroot}%{_rundir}/platform-observability-agent/fluent-bit
 %{systemd_postun_with_restart platform-observability-metrics.service}
 
 %changelog
+* Fri Apr 11 2025 Christopher Nolan <christopher.nolan@intel.com> - 1.8.0-2
+- Update log and metrics service to start after collector service
+
 * Wed Apr 02 2025 Christopher Nolan <christopher.nolan@intel.com> - 1.8.0-1
 - Upgrade agent version
 
