@@ -1,85 +1,91 @@
----
-orphan: true
----
-# Overview
+# Edge Microvisor Toolkit Standalone Node
 
-The Edge Microvisor Toolkit Developer is a package that contains mutable Edge Microvisor Toolkit in an `ISO` installer format. Edge Microvisor Toolkit is a streamlined container operating system that showcases the Intel silicon optimizations. Built on Azure Linux, it features a Linux Kernel maintained by
-Intel, incorporating all the latest kernel and user patches.
+Setting Up an Edge Microvisor Toolkit on a Standalone Node with a Single-Node Cluster Using a USB Bootable Flash Drive
 
-The Edge Microvisor Toolkit Developer has undergone extensive validation across
-all Intel platforms such as Xeon®, Intel® Core Ultra™, Intel Core™ and Intel®
-Atom®. The Edge Microvisor Toolkit Developer Node allows users to quickly deploy
-and run their solutions for multiple scenarios like benchmarking and validation
-of Edge AI computing workloads. The Edge Microvisor Toolkit Developer is
-available to download from the Open-source repository.
 
-The Edge Microvisor Toolkit Developer supports Native applications and VM based applications out of the box. Users can customize their Edge Node using the
-provided `dnf` package manager to install container runtimes and Docker tools.
-This allows users to run Docker containers.
+## Overview
+The following article provides information about the Edge Microvisor Toolkit for Standalone Node installation including system requirements.
 
-The Edge Microvisor Toolkit Developer is Fully open-Source and royalty free.
 
-## Get started
+The Edge Microvisor Toolkit Standalone is a comprehensive package that includes the immutable Edge Microvisor Toolkit, along with the installation of Kubernetes and  all necessary extensions to establish a fully functional single-node cluster. Edge Microvisor Toolkit is a streamlined container operating system that showcases the Intel silicon optimizations. Built on Azure Linux, it features a Linux Kernel maintained by Intel, incorporating all the latest kernel and user
+patches. 
 
-### System requirements
 
-Edge Microvisor Toolkit Developer is designed to support all Intel® platforms
-with the latest Intel® kernel to ensure all features are exposed and available
-for application and workloads. The microvisor has been validated on the
-following platforms.
+## How It Works
+The Edge Microvisor Toolkit is installed on the standalone edge node along with kubernetes cluster using a bootable USB drive created from this installer. The Edge Microvisor Toolkit standalone Node can be used to deploy user applications using helm charts onto the edge node for the evaluation.
 
-|      Atom             |               Core            |      Xeon      |
-| ----------------------| ----------------------------- | -------------- |
+### Getting Started
+
+System requirements for the hardware and software requirements Edge Microvisor Toolkit Standalone is designed to support all Intel® platforms with the latest Intel® kernel to ensure all features are exposed and available for application and workloads. The microvisor has been validated on the following platforms.
+
+### System Requirements
+
+|      Atom             |               Core            |      Xeon               |
+| ----------------------| ----------------------------- | ----------------------- |
 | Intel® Atom® X Series | 12th Gen Intel® Core™         | 4th Gen Intel® Xeon® SP |
 |                       | 13th Gen Intel® Core™         | 3rd Gen Intel® Xeon® SP |
-|                       | Intel® Core™ Ultra (Series 1) |                |
+|                       | Intel® Core™ Ultra (Series 1) |                         |
 
-The following outlines the recommended hardware configuration to run Edge
-Microvisor Toolkit Developer.
+The following outlines the recommended hardware configuration to run Edge Microvisor Toolkit.
 
 | Component    | Standalone Installation    |
 |--------------|----------------------------|
-| CPU          | Intel® Atom, Core, or Xeon |
-| RAM          | 2GB minimum                |
-| Storage      | 32GB SSD/NVMe or eMMC      |
+| CPU          | Intel® Atom®, Intel® Core™, Intel® Core Ultra™ or Intel® Xeon®|
+| RAM          | 8GB minimum                |
+| Storage      | 128GB SSD/NVMe or eMMC      |
 | Networking   | 1GbE Ethernet or Wi-Fi     |
 
-### Installation Instructions
+## Installation Instructions
 
-You can download the Edge Microvisor Toolkit Developer from [Intel Edge Catalog](https://edgesoftwarecatalog.intel.com/)
+### Step 1: Prerequisites
 
-> TODO: Add step by step guide to download the ISO image from ESC with screenshots
+- Your development system should be running a Ubuntu 22.04 machine.
+- Internet connectivity is available on the system.
+- The target node(s) hostname must be in lowercase, numerals, and hyphen’ – ‘.
+- For example: wrk-8 is acceptable; wrk_8, WRK8, and Wrk^8 are not accepted as
+hostnames.
+- Required proxy settings must be added to the /etc/environment file (more below).
+- Get access to the [Edge Software Catalog](https://edgesoftwarecatalog.intel.com/) portal
+- Refer to Get Started Guide [Get Started Guide](https://docs.edgeplatform.intel.com/standalone-edge-node/user-guide/Get-Started-Guide.html) for comprehensive steps on configuring the Standalone Node.
 
-## Secure by Design
+### Step 2: Download the ESC Package
 
-- Package based updates with 'dnf'.
-- Support for Secure Boot (optional) and TPM support for hardware-verified integrity.
-- Support for Full Disc Encryption (optional)
+Select Configure & Download to download the Intel® Edge Microvisor Toolkit
+Standalone Node package [Configure & Download](https://edge-services-catalog-prod-qa.apps1-bg-int.icloud.intel.com/package/edge_microvisor_toolkit_standalone_node)
 
-## Optimized for Intel® Architecture
+### Step 3: Configure
 
-- Pre-tuned drivers and acceleration libraries for Intel® CPUs and GPUs.
-- Enables Intel® silicon ahead of Operating System vendors (OSVs), unlocking
-features that may not be accepted upstream.
-- Intel® Linux* Kernel 6.12 with optimized security settings
+The ESC Package will be downloaded on your Local System in a zip format, labeled as `Edge_Microvisor_Toolkit_Standalone_Node.zip`
 
-## Flexible and Modular Deployment
+1. Proceed to extract the compressed file to obtain the ESC Installer.
 
-- Supports bare metal, VM-based, and containerized deployments.
-- Supports Kubernetes*, Docker*, and OCI-compliant runtimes.
+   ```bash
+   unzip Edge_Microvisor_Toolkit_Standalone_Node.zip
+   ```
 
-## Open Source and Extensible
+1. Navigate to the extracted folder & modify the permissions of the
+‘edgesoftware’ file to make it executable.
 
-- Fully open-source and royalty-free.
-- Actively integrates OxM platform features and third-party vendor hardware.
+   ```bash
+   chmod +x edgesoftware
+   ```
 
-## Getting help
+1. Execute the Edge Software Catalog Installer to begin the installation process by using the
+following command:
 
-If you encounter bugs, have feature requests, or need assistance, file a GitHub Issue. Before submitting a new report, check the existing issues to see if a
-similar one has not been filed already. If no matching issue is found, feel free
-to file the issue as described in the contribution guide.
+   ```bash
+   sudo ./edgesoftware install
+   ```
+Adhere to the console guidelines to set up the USB bootable flash drive.
 
-## License Information
+## Step 4: Install Edge Microvisor Toolkit and Cluster setup
 
-Edge Microvisor Toolkit Developer is based on [Azure Linux](https://github.com/microsoft/azurelinux), sharing its permissive open-source license:
-[MIT](https://github.com/microsoft/azurelinux/blob/3.0/LICENSE).
+1. Once the script has finished successfully, eject the USB device
+1. Ensure that USB boot is enabled in BIOS on the target device. Check that the USB boot option is highest in boot order priority to ensure that it will be booting from USB and not attempt network boot or boot from the system's NVMe/SSD.
+1. The Runtime OS will install the Edge Microvisor Toolkit and continues to create the kubernetes cluster
+1. User shall connect to the Standalone node using credential or ssh keys.
+1. Copy the required kubeconfig file Development system for Cluster management and application deployment.
+
+## Step 5: Application Deployment
+1. User can install the application using helm charts 
+1. Refer to Get started guide for more details to deploy the application
