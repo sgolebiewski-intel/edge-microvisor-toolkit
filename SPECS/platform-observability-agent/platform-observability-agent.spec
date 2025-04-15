@@ -46,6 +46,7 @@ install -d -m 755 %{buildroot}%{_sysconfdir}/edge-node/node/confs
 install -m 744 %{SOURCE5} %{buildroot}%{_sysconfdir}/edge-node/node/confs/platform-observability-collector
 install -m 744 %{SOURCE6} %{buildroot}%{_sysconfdir}/edge-node/node/confs/platform-observability-health-check
 install -m 744 %{SOURCE7} %{buildroot}%{_sysconfdir}/edge-node/node/confs/platform-observability-logging
+install -m 744 %{SOURCE7} %{buildroot}%{_sysconfdir}/edge-node/node/confs/platform-observability-metrics
 
 mkdir -p %{buildroot}%{_sysconfdir}/fluent-bit
 cp configs/fluent-bit.conf %{buildroot}%{_sysconfdir}/fluent-bit
