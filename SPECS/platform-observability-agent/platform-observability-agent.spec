@@ -83,6 +83,7 @@ mkdir -p %{buildroot}%{_rundir}/platform-observability-agent/fluent-bit
 %config %attr(-, platform-observability-agent, bm-agents) %{_sysconfdir}/edge-node/node/confs/platform-observability-collector
 %config %attr(-, platform-observability-agent, bm-agents) %{_sysconfdir}/edge-node/node/confs/platform-observability-health-check
 %config %attr(-, platform-observability-agent, bm-agents) %{_sysconfdir}/edge-node/node/confs/platform-observability-logging
+%config %attr(-, platform-observability-agent, bm-agents) %{_sysconfdir}/edge-node/node/confs/platform-observability-metrics
 %config %attr(-, platform-observability-agent, bm-agents) %{_sysconfdir}/fluent-bit/fluent-bit.conf
 %config %attr(-, platform-observability-agent, bm-agents) %{_sysconfdir}/health-check/health-check.conf
 %config %attr(-, platform-observability-agent, bm-agents) %{_sysconfdir}/telegraf/telegraf.d/poa-telegraf.conf
