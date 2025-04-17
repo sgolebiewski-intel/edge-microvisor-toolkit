@@ -23,7 +23,8 @@ devices, including remote deployment and management of Kubernetes applications.
 
 To create a custom developer build of Edge Microvisor Toolkit, follow these steps:
 
-- Install the mutable OS via ISO image that includes only essential pre-installed packages, providing a ready-to-use base environment.
+- Download the mutable host ISO image from [Edge Software Catalog](https://edgesoftwarecatalog.intel.com/)
+- Install the mutable host via ISO image that includes only essential pre-installed packages, providing a ready-to-use base environment.
 - Install additional RPM packages, using DNF to tailor the OS to your specific needs.
 - Update installed RPMs regularly to stay up-to-date in the OS in terms of package updates, kernel updates, security vulnerability fixes and bug fixes.
 - Use the OS toolkit and available packages to build a custom OS image, which enables you to:
@@ -41,7 +42,7 @@ To create a custom developer build of Edge Microvisor Toolkit, follow these step
 | Development | gcc, make, python3, perl, cmake, git |
 | Security | openssl, gnupg, selinux, cryptsetup, tpm2-tools |
 | Filesystem | e2fsprogs, mount |
-| Included in kernel | iGPU, dGPU (Intel® Arc), SRIOV, WiFi, Ethernet, Bluetooth, GPIO, UART, I2C, CAN, USB, PCIe, PWM, SATA, NVMe, MMC/SD, TPM, Manageability Engine, Power Management, Watchdog, RAS |
+| Included in kernel | iGPU, dGPU (Intel® Arc&trade;), SRIOV, WiFi, Ethernet, Bluetooth, GPIO, UART, I2C, CAN, USB, PCIe, PWM, SATA, NVMe, MMC/SD, TPM, Manageability Engine, Power Management, Watchdog, RAS |
 
 The supported package repository offers additional `rpm` for tailoring the image to specific needs of container runtime, virtualization, orchestration software, monitoring tools, standard cloud-edge (CNCF) software, and more.
 
@@ -61,6 +62,7 @@ filesystem. Image and orchestration system updates are currently not natively en
 
 The ISO installer for the standalone Edge Node is available for download at
 [Intel® Edge Software Hub](https://edgesoftwarecatalog.intel.com/).
+
 
 ### Edge Microvisor Toolkit with Edge Orchestrator
 
