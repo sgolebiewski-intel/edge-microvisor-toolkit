@@ -123,6 +123,50 @@ Then, rebuild the image:
 sudo make image -j8 REBUILD_TOOLS=y REBUILD_PACKAGES=n CONFIG_FILE=./imageconfigs/edge-image.json
 ```
 
+### Update of Edge Node Agents
+
+1. If a new package has to be released, follow these steps to ensure the package is available
+   in the artifactory:
+
+    a. Checkout the tag for your agent which has to be released.
+    b. cd into your agent's directory.
+    c. Invoke `make tarball`.
+    d. Upload tarball from `build/artifacts` to the tarball repository.
+
+2. Update the respective .spec file in SPECS/`package` directory. Example: `SPECS/node-agent`.
+
+3. Bump the release number declared in the top section of the .spec file if on the same
+   version. Otherwise, update the release version and set the number to 1.
+
+4. Update `env_wrapper.sh` and the .spec file if there are installation changes or new
+   configurations to be added.
+
+5. Update the changelog to ensure the version and release number are mentioned correctly as
+   well. Example:
+
+    ```bash
+    * Tue Mar 25 2025 Andrea Campanella <andrea.campanella@intel.com> - 1.5.11-2
+    - Move from RSTYPE to RS_TYPE in wrapper for node-agent
+    ```
+
+6. Generate sha256sum of all files that have been updated.
+Example : `sha256sum ./SPECS/node-agent/env_wrapper.sh`
+
+7. Update the signature file name `<agent-name>.signatures.json`. Example: `node-agent.signatures.json`.
+
+8. Update `cgmanifest.json`. You can use a script to do it, if you have an RPM environment.
+   Otherwise, update the version and download the URL manually. Example commands to update
+   using a manifest:
+
+    ```bash
+    python3 -m pip install -r ./toolkit/scripts/requirements.txt
+    python3 ./toolkit/scripts/update_cgmanifest.py first cgmanifest.json ./SPECS/node-agent/node-agent.spec
+    ```
+
+> **Note:**
+  This guide applies to `rpm` package addition in general for Edge Microvisor.
+
 ## Next
 
 - Learn how to [Enable Secure Boot for Edge Microvisor Toolkit](sb-howto.md).
+- See the detailed description of how to [create a full build and customize it](/toolkit/docs/building/building.md).
