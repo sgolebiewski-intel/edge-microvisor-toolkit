@@ -123,7 +123,7 @@ Then, rebuild the image:
 sudo make image -j8 REBUILD_TOOLS=y REBUILD_PACKAGES=n CONFIG_FILE=./imageconfigs/edge-image.json
 ```
 
-### Update of Edge Node Agents
+### Update or Adding Packages
 
 1. If a new package has to be released, follow these steps to ensure the package is available
    in the artifactory:
