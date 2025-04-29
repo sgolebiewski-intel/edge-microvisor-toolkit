@@ -34,9 +34,9 @@ Check out these articles to quickly learn how to work with Edge Microvisor Toolk
 
 * [System requirements](./docs/developer-guide/system-requirements.md)
   for the hardware and software requirements.
-* [Download](https://edgesoftwarecatalog.intel.com/details/?microserviceType=recipe&microserviceNameForUrl=edge--microvisor-toolkit-development-node) and [install the developer ISO image](./docs/developer-guide/get-started.md#standalone-developer-edge-node)
+* [Download](https://edgesoftwarecatalog.intel.com/details/?microserviceType=recipe&microserviceNameForUrl=edge--microvisor-toolkit-development-node) and [install the developer ISO image](./docs/developer-guide/get-started.md#edge-microvisor-toolkit-developer)
   for a mutable container host providing only minimum functionality.
-* [Download](https://edgesoftwarecatalog.intel.com/details/?microserviceType=recipe&microserviceNameForUrl=edge-microvisor-toolkit-standalone-node) and [install the production RAW image]( ./docs/developer-guide/get-started.md#standalone-edge-node)
+* [Download](https://edgesoftwarecatalog.intel.com/details/?microserviceType=recipe&microserviceNameForUrl=edge-microvisor-toolkit-standalone-node) and [install the production RAW image]( ./docs/developer-guide/get-started.md#edge-microvisor-toolkit-standalone)
   for an immutable container host with essential functionality.
 * [Install on bare metal edge node](./docs/developer-guide/get-started/installation-howto.md#baremetal-with-iso) or
   [Install on a Virtual Machine](./docs/developer-guide/get-started/installation-howto.md#virtual-machine-with-hyper-v)
