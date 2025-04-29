@@ -169,4 +169,4 @@ Example : `sha256sum ./SPECS/node-agent/env_wrapper.sh`
 ## Next
 
 - Learn how to [Enable Secure Boot for Edge Microvisor Toolkit](sb-howto.md).
-- See the detailed description of how to [create a full build and customize it](/toolkit/docs/building/building.md).
+- See the detailed description of how to [create a full build and customize it](/toolkit/docs/building/add-package.md).
