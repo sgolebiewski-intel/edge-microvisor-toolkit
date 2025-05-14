@@ -21,22 +21,34 @@ of the resulting image, such as:
 Before you can build OS images you need to build the toolchain and make sure to
 [**install pre-requisites (Ubuntu)**](/toolkit/docs/building/prerequisites-ubuntu.md).
 
-The toolkit can use prebuilt packages for building the OS images. This is the recommended
-approach, as building the *entire toolchain* may take a lot of time. Adding the
-`REBUILD_TOOLCHAIN=y` parameter to the `make` command rebuilds the entire toolchain.
+> **Note:**
+  Use stable tag instead of latest for building the OS images with prebuilt packages.
+  This is the recommended approach, as building the *entire toolchain* may take a lot of
+  time. Adding the `REBUILD_TOOLCHAIN=y` parameter to the `make` command rebuilds
+  the entire toolchain.
 
-```bash
-# Clone the repository
-git clone <Microvisor git repo>
-cd <Microvisor repo>
 
-# Checkout stable branch of Microvisor
-git checkout <latest stable>
+1. Clone the stable branch of the Edge Microvisor Toolkit repository.
 
-# Build the tools
-cd ./toolkit
-sudo make toolchain REBUILD_TOOLS=y
-```
+   Check the [tags](https://github.com/open-edge-platform/edge-microvisor-toolkit/tags) for
+   the `<stable_tag_name>`.
+
+   ```bash
+   git clone https://github.com/open-edge-platform/edge-microvisor-toolkit --branch=<stable_tag_name>
+   ```
+
+2. Navigate to the `toolkit` subdirectory.
+
+   ```bash
+   cd edge-microvisor-toolkit/toolkit
+   ```
+
+3. Build the tools.
+
+   ```bash
+   cd ./toolkit
+   sudo make toolchain REBUILD_TOOLS=y
+   ```
 
 ## Building the Default Microvisor Image
 
