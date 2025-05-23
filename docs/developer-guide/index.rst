@@ -62,7 +62,7 @@ Why Use Edge Microvisor Toolkit
 |      Delivers performance enhancements tailored to Intel® silicon, ensuring maximum
        efficiency.
 | **Scalability for large fleets**
-|      Centralized control through Edge Manageability Framework simplifies 
+|      Centralized control through Edge Manageability Framework simplifies
        management across thousands of edge nodes.
 
 
@@ -113,17 +113,17 @@ See the [LICENSE](../LICENSE) file for more details.
 Next Steps
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-:doc:`Architecture Overview <./architecture-overview>`
+:doc:`Architecture Overview <./emt-architecture-overview>`
 
 
 
 
 
 .. toctree::
-    get-started
-    architecture-overview
-    deployment-edge-orchestrator
-    security
-    contribution
-    troubleshooting
-    system-requirements
+    emt-get-started
+    emt-architecture-overview
+    emt-deployment-edge-orchestrator
+    emt-security
+    emt-contribution
+    emt-troubleshooting
+    emt-system-requirements
