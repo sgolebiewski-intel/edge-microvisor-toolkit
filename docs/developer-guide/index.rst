@@ -123,4 +123,3 @@ Next Steps
     emt-security
     emt-contribution
     emt-troubleshooting
-    emt-system-requirements
