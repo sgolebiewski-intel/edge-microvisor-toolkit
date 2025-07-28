@@ -1,18 +1,30 @@
 # Build Edge Microvisor Toolkit and Deploy on Edge Nodes
 
 This guide will walk you through the entire process of Edge Microvisor Toolkit deployment.
-You will learn how to build the default version of the toolkit, install it on a single
-or multiple edge node clusters, and deploy AI solutions.
-This guide uses the
+You will learn how to build the toolkit, install it on a single or multiple edge node
+clusters, and deploy AI solutions. This guide uses
 [Smart Parking application](https://github.com/open-edge-platform/edge-ai-suites/tree/main/metro-ai-suite/smart-parking)
 with AI-driven video analytics to optimize parking management.
 
-1. Build the microvisor.
-2. Create a bootable USB installer.
-3. Install the toolkit on an edge device.
-4. Deploy AI solution.
+The Edge Microvisor Toolkit Standalone Node supports different EMT images to
+meet specific edge deployment needs. You can choose from:
 
-## Build the microvisor
+- **Edge Microvisor Toolkit Non Realtime image** (default)
+- **Edge Microvisor Toolkit Desktop Virtualization image**
+- **Custom immutable Edge Microvisor Toolkit created using** [Build Instructions](#1-build-the-microvisor)
+
+**Table of contents:**
+
+1. [Build a custom image of Edge Microvisor Toolkit.](#1-build-the-microvisor)
+2. [Create a bootable USB installer.](#2-create-a-bootable-usb-installer)
+3. [Install the toolkit on an edge device.](#3-install-the-toolkit-on-an-edge-device)
+4. [Deploy AI solution.](#4-deploy-ai-solution)
+
+## 1. Build the microvisor
+
+If you want to create your own custom standalone node, follow the instructions below to build
+the microvisor from scratch. If you wish to use the default, non-real-time image of Edge Microvisor
+skip to [Create a bootable USB installer](#create-a-bootable-usb-installer).
 
 1. Clone the stable branch of edge-microvisor-toolkit repository:
 
@@ -20,19 +32,13 @@ with AI-driven video analytics to optimize parking management.
    git clone https://github.com/open-edge-platform/edge-microvisor-toolkit --branch=3.0.20250718
    ```
 
-2. Clone the edge-microvisor-toolkit-standalone-node repository:
-
-   ```bash
-   git clone https://github.com/open-edge-platform/edge-microvisor-toolkit-standalone-node
-   ```
-
-3. Navigate to the `edge-microvisor-toolkit` directory:
+2. Navigate to the `edge-microvisor-toolkit` directory:
 
    ```bash
    cd edge-microvisor-toolkit
    ```
 
-4. Install prerequisites:
+3. Install prerequisites:
 
    Requirements for building the toolchain were validated on an Ubuntu 22.04 host.
 
@@ -55,19 +61,25 @@ with AI-driven video analytics to optimize parking management.
 
    **You will need to log out and log back in** for user changes to take effect.
 
-5. Navigate to the `toolkit` subdirectory.
+4. Navigate to the `toolkit` subdirectory.
 
    ```bash
    cd ./toolkit
    ```
 
-6. Build the toolchain.
+5. Build the toolchain.
 
    ```bash
    sudo make toolchain REBUILD_TOOLS=y
    ```
 
-7. Build a selected version of the Edge Microvisor Toolkit:
+6. Customize the toolkit image.
+
+   You can include additional components to your toolkit image by adding RPM packages.
+   For more details, read
+   [Customize Your Edge Microvisor Toolkit Image](./emt-building-howto.md#customize-your-edge-microvisor-toolkit-image).
+
+7. Build the toolkit image:
 
    All available image configurations are stored in JSON files, located in the `imageconfigs` folder.
    For example, to build a RAW image without real-time extensions, use `edge-image.json` and run
@@ -79,49 +91,27 @@ with AI-driven video analytics to optimize parking management.
 
    For more information about specific building parameters, refer to the [article.](https://github.com/open-edge-platform/edge-microvisor-toolkit/blob/3.0/toolkit/docs/building/building.md#local-build-variables).
 
-## Create a bootable USB installer
+## 2. Create a bootable USB installer
 
-1. Navigate to the `edge-microvisor-toolkit-standalone-node` directory:
+### Prepare the bootable USB drive
 
-   ```bash
-   cd ../../edge-microvisor-toolkit-standalone-node
-   ```
+   Ensure the correct USB drive is selected to avoid data loss.
+   Replace `/dev/sdX` with the device name of your USB drive.
 
-2. Create the installer:
-
-   To create the installation tar file with all required files for preparing a bootable USB
-   drive, run the following command
-
-   ```bash
-   sudo make build
-   ```
-
- > **Note:** This command will generate the `standalone-installation-files.tar.gz` file.
-   The file will be located in the `$(pwd)/installation-scripts/out` directory.
-
-3. Prepare the bootable USB drive:
-
-   > **Note:**
-   >
-   > - Ensure **the correct USB drive is selected** to avoid data loss.
-   > - **Replace `/dev/sdX`** with the actual device name of your USB drive.
-
-   - Insert the USB drive into the Developer's System and identify the USB disk:
+   - Insert the USB drive and identify the USB disk:
 
       ```bash
       lsblk -o NAME,MAJ:MIN,RM,SIZE,RO,FSTYPE,MOUNTPOINT,MODEL
       ```
 
-      > **Note:** Ensure the correct USB drive is selected to avoid data loss.
-
-   - Use the wipefs command to remove any existing filesystem signatures from the USB drive.
+   - Use the `wipefs` command to remove any existing filesystem signatures from the USB drive.
      This ensures a clean slate for formatting
 
       ```bash
       sudo wipefs --all --force /dev/sdX
       ```
 
-   - Format the USB drive with a FAT32 filesystem using the mkfs.vfat command.
+   - Format the USB drive with the FAT32 filesystem, using `mkfs.vfat`:
 
       ```bash
       sudo mkfs.vfat /dev/sdX
@@ -141,138 +131,165 @@ with AI-driven video analytics to optimize parking management.
        sudo umount /dev/sdX
        ```
 
-   - Copy standalone installation tar file to developer system to prepare the Bootable USB
+### Prepare the installation files
 
-     Extract the contents of standalone-installation-files.tar.gz
+1. Clone the edge-microvisor-toolkit-standalone-node repository:
 
-     ```bash
-      tar -xzf standalone-installation-files.tar.gz
-     ```
+   ```bash
+   cd
+   git clone https://github.com/open-edge-platform/edge-microvisor-toolkit-standalone-node
+   ```
 
-   - Extracted files will include
+2. Navigate to the `edge-microvisor-toolkit-standalone-node` directory:
 
-     ```text
-     bootable-usb-prepare.sh
-     write-image-to-usb.sh
-     config-file
-     usb-bootable-files.tar.gz
-     edgenode-logs-collection.sh
-     standalone-vm-setup.sh
-     download_images.sh
-     user-apps
-     ```
+   ```bash
+   cd ../../edge-microvisor-toolkit-standalone-node
+   ```
 
-   - Download the kubernetes artifacts (container images and manifest files). This step is done by
-     executing the ./download_images.sh script. If you are using EMT image with desktop virtualization
-     features then use `DV` parameter. For default EMT image which is a non-Real Time kernel use `NON-RT`
-     parameter.
+3. Create the installer:
+
+   To create the installation tar file with all required components for preparing a bootable USB
+   drive, run the following command:
+
+   ```bash
+   sudo make build
+   ```
+
+   > **Note:** This command will generate the `standalone-installation-files.tar.gz` file.
+     The file will be located in the `./standalone-node/installation-scripts/out` directory.
+
+
+4. Copy the contents of `standalone-installation-files.tar.gz`:
+
+   Since the `./standalone-node/installation-scripts/out` folder is read only, you need to
+   select a folder to which you will extract the required files and then edit them.
+   For example, you can create the `standalone-installation-files` folder in the
+   `\home` directory:
+
+   ```bash
+   mkdir ~\standalone-installation-files
+   ```
+
+   Extract the contents to the selected folder:
+
+   ```bash
+   tar -xzf ./standalone-node/installation_scripts/out/standalone-installation-files.tar.gz -C ~/standalone-installation-files
+   ```
+
+   The extracted files are as follows:
+
+   ```text
+   bootable-usb-prepare.sh
+   write-image-to-usb.sh
+   config-file
+   usb-bootable-files.tar.gz
+   edgenode-logs-collection.sh
+   standalone-vm-setup.sh
+   download_images.sh
+   user-apps
+   ```
+
+   Navigate to the folder with the extracted installation files:
+
+   ```bash
+   cd ~/standalone-installation-files
+   ```
+
+   - Download the Kubernetes artifacts (container images and manifest files) by
+     executing the `./download_images.sh` script. For the default non-teal-time image,
+     use the `NON-RT` parameter.
 
       ```bash
-      sudo ./download_images.sh DV
-
-      or
-
       sudo ./download_images.sh NON-RT
       ```
 
-   > **Note:** By default the script will only pull basic kubernetes artifacts to create a single node cluster.
+   > **Note:** By default, the script will only pull basic kubernetes artifacts to create a
+     single node cluster. If you want to use EMT image with desktop virtualization features,
+     use the `DV` parameter instead of `NON-RT`.
 
    - Update the `config-file` with your deployment-specific settings.
-   This configuration file is used to provision the edge node during
-   its initial boot and should include the following parameters:
 
-     - **Proxy settings:** Specify if the edge node requires a proxy to access external networks.
-     - **SSH key:** Provide the public SSH key (typically your
-     `id_rsa.pub`) from your Linux development system to enable passwordless SSH access to the edge node.
-     - **User credentials:** Define the username and password for the primary user account on the edge node.
-     - **Cloud-init customization:** Optionally, include user-defined `cloud-init` configurations for advanced setup requirements.
-       - For the default EMT Non-Realtime image, a basic
-       Kubernetes installation will be performed automatically.
-       - For deployments requiring Desktop Virtualization features,
-         refer to the [desktop-virtualization-image-guide](desktop-virtualization-image-guide.md) in the
-         `user-guide` directory. This document provides reference `cloud-init` configurations that can be
-         tailored to your specific deployment needs.
-     - **Hugepages configuration:** Set hugepages parameters if your workloads require them.
+     This configuration file is used to provision the edge node during
+     its initial boot and should include the following parameters:
 
-   - Run the preparation script to create the bootable USB
+   - **Proxy settings** - when the edge node requires a proxy to access external networks.
+   - **SSH key** - the public SSH key (typically your `id_rsa.pub`) from your Linux
+     development system to enable passwordless SSH access to the edge node.
+   - **User credentials** - the username and password for the primary user account on the edge node.
+   - **Cloud-init customization** - optional, user-defined `cloud-init` configurations for advanced setup requirements.
 
-      ```bash
-      sudo ./bootable-usb-prepare.sh </dev/sdX> usb-bootable-files.tar.gz config-file
-      ```
+     For the default non-real-time image, a basic Kubernetes installation is done automatically.
 
-   - Required Inputs for the Script:
+     > **Note:** single node cluster.For deployments requiring desktop virtualization features,
+     > refer to the [desktop-virtualization-image-guide](https://github.com/open-edge-platform/edge-microvisor-toolkit-standalone-node/blob/main/andalone-node/docs/user-guide/desktop-virtualization-image-guide.md) in the
+     > `user-guide` directory. This document provides reference `cloud-init` configurations that can be
+     > tailored to your specific deployment needs.
 
-       ```bash
-        - usb: A valid USB device name (e.g., `/dev/sdc`)
-        - usb-bootable-files.tar.gz: The tar file containing bootable files
-        - config-file: Configuration file with deployment-specific settings
-       ```
+   - **HugePages configuration** - set when the workloads require HugePages.
 
-   > **Note:** Providing proxy settings is optional if the edge node does not require them to access internet services.
-   > **Additional Customization:** If you want to add specific configurations,
-   helm charts, or packages to your deployment, you can refer to the
-   [pre-loading-user-apps guide](pre-loading-user-apps.md) for detailed
-   instructions on customizing your EMT image.
 
-4. Select your Edge Microvisor Toolkit image:
+### Create the bootable USB drive
 
-   The Edge Microvisor Toolkit Standalone Node supports different EMT images to
-   meet specific edge deployment needs. You can choose from:
+1. To create the bootable USB drive, run the script:
 
-   - **Edge Microvisor Toolkit Non Realtime image** (default)
-   - **Edge Microvisor Toolkit Desktop Virtualization image**
-   - **Customized immutable Edge Microvisor Toolkit created using "Edge Microvisor Toolkit Developer Node"**
+   ```bash
+   sudo ./bootable-usb-prepare.sh </dev/sdX> usb-bootable-files.tar.gz config-file
+   ```
 
-   ##### Option 1: Using the Default Non Realtime Image
+   > **Note:** If you want to add specific configurations, helm charts, or packages to your
+   deployment, you can refer to the
+   [pre-loading-user-apps guide](https://github.com/open-edge-platform/edge-microvisor-toolkit-standalone-node/blob/main/standalone-node/docs/user-guide/pre-loading-user-apps.md)
+   for detailed instructions on customizing your EMT image.
 
-   If you opt for the default Non-Realtime image, which is suggested for the majority of Edge AI applications,
-   there's no need for further image setup. The usb-bootable-files.tar.gz installer comes with this image pre-included.
+2. Select your Edge Microvisor Toolkit image:
 
-   ##### Option 2: Using Desktop Virtualization or Custom created image
+   If you want to use the default non-RT image, [proceed with installation](#3-install-the-toolkit-on-an-edge-device),
+   as the `usb-bootable-files.tar.gz` file already includes this image.
 
-   If you need Desktop Virtualization features, follow these steps to replace the default image:
+   To install [custom build image](#1-build-the-microvisor), or the image with desktop
+   virtualization features (DV) you need to copy it manually to the 5th partition of the USB
+   drive, thus replacing the default non-RT one. Follow the instructions below:
 
-   1. Desktop Virtualization image: Download from the no Auth file server registry
 
-   > **Note:** Custom created image can be copied locally from your development system to the 5th
-   > partition as shown in step 2 below.
-
-   1. Replace the default EMT image with the EMT DV or custom created image. The
-   default EMT image is located at the 5th partition of the
-   bootable USB drive created in the previous step.
-   Follow these steps to replace the image:
+   1. Mount the 5th partition and remove the default image:
 
      ```bash
-     # Create a test directory for mounting
+     # Create a test directory for mounting.
      sudo mkdir -p /mnt/test
 
-     # Mount the 5th partition of the USB drive
+     # Mount the 5th partition of the USB drive.
      sudo mount /dev/sda5 /mnt/test
 
-     # Navigate to the mounted directory
+     # Navigate to the mounted directory.
      cd /mnt/test
 
-     # Remove the older image (backup first if needed)
+     # Remove the older image (backup first if needed).
      sudo rm -f <old-image-file>
-
-     # For Desktop Virtualization image: Download from registry
-     sudo wget <your-dv-image-url> -O <new-image-file>
-
-     # For Custom created image: Copy from local directory to 5th partition
-     sudo cp /path/to/your/custom-image.raw ./
-
-     # Unmount the partition
-     cd /
-     sudo umount /mnt/test
      ```
 
-   The DV image is available here [Download DV Image](https://files-rs.edgeorchestration.intel.com/files-edge-orch/repository/microvisor/dv/   edge-readonly-dv-3.0.20250717.0840.raw.gz)
+   2. Copy or download the image to the mounted directory:
 
-     > **Important:** These steps are manually executed by the user to put the desired image
-     > into the 5th partition before standalone deployment mentioned in
-     > [Step 2: Deploy Edge Node](#step-2-deploy-edge-node)
+      Copy your custom build image from a local directory to 5th partition:
 
-### 3. Install the toolkit on an edge device
+      ```bash
+      sudo cp /path/to/your/custom-image.raw ./
+      ```
+
+      Or, you can download the toolkit image with desktop virtualization features:
+
+      ```bash
+
+      sudo wget <https://files-rs.edgeorchestration.intel.com/files-edge-orch/repository/microvisor/dv/edge-readonly-dv-3.0.20250717.0840.raw.gz> -O edge-readonly-dv-3.0.20250717.0840.raw.gz
+      ```
+
+   3. Unmount the partition:
+
+      ```bash
+      cd /
+      sudo umount /mnt/test
+      ```
+
+## 3. Install the toolkit on an edge device
 
 - Unplug the attached bootable USB from developer system
 
@@ -289,7 +306,7 @@ with AI-driven video analytics to optimize parking management.
 - First Boot Configuration
   During the first boot, cloud-init will install the k3s Kubernetes cluster.
 
-####Login to the Edge Node After Installation Completes
+### Login to the Edge Node After Installation Completes
 
 Refer to the edge node console output for instructions to verify the kubernetes cluster creation.
 
@@ -302,7 +319,7 @@ which is defined in the .bashrc of the user defined in your config.
 k get pods -A
 ```
 
-#### Set up tools on Developer's System
+### Set up tools on Developer's System
 
 Install and configure [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) and
 [helm](https://helm.sh/docs/intro/install/) tools on the Developer's system.
