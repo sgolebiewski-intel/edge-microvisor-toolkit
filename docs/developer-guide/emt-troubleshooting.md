@@ -233,3 +233,15 @@ USB boot option and make sure USB boot has highest precedence in the
 boot order list. You also need to configure BIOS with the Platform Keys (PK) to enable
 [secure boot](./security-considerations/emt-sb-howto.md) for Edge Microvisor Toolkit.
 ::::
+
+## Known Limitations
+
+### Real-time jitter and CPU spikes
+
+High variance real-time jitter and CPU spikes have been observed on boards with
+Intel® Core™ Ultra Processors Series 1 (Meteor Lake U/H) and Series 2 (Arrow Lake U/H)
+on Ubuntu 24.04.
+The issues may result in a significant performance instability for real-time workloads
+using RAW/ISO toolkit images with 6.12 RT kernel.
+
+
